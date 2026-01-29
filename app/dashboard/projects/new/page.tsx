@@ -85,6 +85,18 @@ export default function NewProjectPage() {
 
     try {
       const supabase = createClient()
+      
+      // First, try to get the session to ensure auth state is initialized
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError)
+        setError(`Authentication error: ${sessionError.message}`)
+        setIsLoading(false)
+        return
+      }
+
+      // Then get the user
       const { data: { user }, error: userError } = await supabase.auth.getUser()
 
       if (userError) {
@@ -94,8 +106,8 @@ export default function NewProjectPage() {
         return
       }
 
-      if (!user) {
-        console.error('No user found')
+      if (!user || !session) {
+        console.error('No user or session found')
         router.push('/login')
         return
       }
