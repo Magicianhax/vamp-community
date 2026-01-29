@@ -1,0 +1,135 @@
+'use client'
+
+import { useState } from 'react'
+import { ChevronUp, ChevronDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
+
+export interface ResourceVoteButtonProps {
+  resourceId: string
+  initialUpvotes: number
+  initialDownvotes: number
+  initialUserVote?: 'upvote' | 'downvote' | null
+  userId?: string | null
+  className?: string
+}
+
+export function ResourceVoteButton({
+  resourceId,
+  initialUpvotes,
+  initialDownvotes,
+  initialUserVote = null,
+  userId,
+  className,
+}: ResourceVoteButtonProps) {
+  const [upvotes, setUpvotes] = useState(initialUpvotes)
+  const [downvotes, setDownvotes] = useState(initialDownvotes)
+  const [userVote, setUserVote] = useState<'upvote' | 'downvote' | null>(initialUserVote)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleVote = async (voteType: 'upvote' | 'downvote') => {
+    if (!userId) {
+      window.location.href = '/login'
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const supabase = createClient()
+
+      // If clicking the same vote, remove it
+      if (userVote === voteType) {
+        const { error } = await supabase
+          .from('resource_votes')
+          .delete()
+          .eq('user_id', userId)
+          .eq('resource_id', resourceId)
+
+        if (!error) {
+          if (voteType === 'upvote') {
+            setUpvotes((prev) => Math.max(0, prev - 1))
+          } else {
+            setDownvotes((prev) => Math.max(0, prev - 1))
+          }
+          setUserVote(null)
+        }
+      } else {
+        // Remove existing vote if any
+        if (userVote) {
+          await supabase
+            .from('resource_votes')
+            .delete()
+            .eq('user_id', userId)
+            .eq('resource_id', resourceId)
+
+          if (userVote === 'upvote') {
+            setUpvotes((prev) => Math.max(0, prev - 1))
+          } else {
+            setDownvotes((prev) => Math.max(0, prev - 1))
+          }
+        }
+
+        // Add new vote
+        const { error } = await supabase
+          .from('resource_votes')
+          .insert({ user_id: userId, resource_id: resourceId, vote_type: voteType })
+
+        if (!error) {
+          if (voteType === 'upvote') {
+            setUpvotes((prev) => prev + 1)
+          } else {
+            setDownvotes((prev) => prev + 1)
+          }
+          setUserVote(voteType)
+        }
+      }
+    } catch (error) {
+      console.error('Vote error:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const netScore = upvotes - downvotes
+
+  return (
+    <div className={cn('flex flex-col items-center gap-1', className)}>
+      <button
+        onClick={() => handleVote('upvote')}
+        disabled={isLoading}
+        className={cn(
+          'w-10 h-10 flex items-center justify-center border-2 border-black rounded shadow-md transition-colors',
+          'disabled:opacity-50 disabled:cursor-not-allowed',
+          userVote === 'upvote' 
+            ? 'bg-primary text-primary-foreground' 
+            : 'bg-card hover:bg-muted'
+        )}
+      >
+        <ChevronUp className="w-5 h-5" />
+      </button>
+      
+      <span className={cn(
+        'text-sm font-head font-semibold tabular-nums min-w-[2ch] text-center',
+        netScore > 0 && 'text-green-600',
+        netScore < 0 && 'text-red-600'
+      )}>
+        {netScore}
+      </span>
+
+      <button
+        onClick={() => handleVote('downvote')}
+        disabled={isLoading}
+        className={cn(
+          'w-10 h-10 flex items-center justify-center border-2 border-black rounded shadow-md transition-colors',
+          'disabled:opacity-50 disabled:cursor-not-allowed',
+          userVote === 'downvote' 
+            ? 'bg-red-500 text-white' 
+            : 'bg-card hover:bg-muted'
+        )}
+      >
+        <ChevronDown className="w-5 h-5" />
+      </button>
+    </div>
+  )
+}
