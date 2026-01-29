@@ -48,6 +48,8 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['better-sqlite3'],
   },
+  // Ensure middleware runs on edge runtime for better cookie handling
+  // This helps with Vercel serverless functions
 }
 
 module.exports = nextConfig

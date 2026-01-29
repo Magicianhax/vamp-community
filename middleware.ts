@@ -5,6 +5,9 @@ export async function middleware(request: NextRequest) {
   return await updateSession(request)
 }
 
+// Use edge runtime for better performance and cookie handling in Vercel
+export const runtime = 'edge'
+
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',

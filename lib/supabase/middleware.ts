@@ -31,6 +31,11 @@ export async function updateSession(request: NextRequest) {
             name,
             value,
             ...options,
+            // Ensure cookies work in serverless/Vercel
+            sameSite: options?.sameSite || 'lax',
+            secure: options?.secure ?? process.env.NODE_ENV === 'production',
+            httpOnly: options?.httpOnly ?? false,
+            path: options?.path || '/',
           })
         },
         remove(name: string, options: CookieOptions) {
@@ -48,6 +53,12 @@ export async function updateSession(request: NextRequest) {
             name,
             value: '',
             ...options,
+            // Ensure cookies work in serverless/Vercel
+            sameSite: options?.sameSite || 'lax',
+            secure: options?.secure ?? process.env.NODE_ENV === 'production',
+            httpOnly: options?.httpOnly ?? false,
+            path: options?.path || '/',
+            maxAge: 0, // Expire immediately
           })
         },
       },
