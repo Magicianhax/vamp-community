@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Trophy, Calendar, Coins } from 'lucide-react'
 import { Card } from '@/components/retroui/Card'
-import { formatDate, getDaysUntil, cn } from '@/lib/utils'
+import { formatTimeLeft, cn } from '@/lib/utils'
 import { extractTwitterHandle } from '@/lib/utils/twitter'
 import { TwitterAvatar } from '@/components/ui/TwitterAvatar'
 import type { Grant } from '@/types'
@@ -12,8 +12,7 @@ export interface GrantRowProps {
 }
 
 export function GrantRow({ grant, rank }: GrantRowProps) {
-  const daysLeft = getDaysUntil(grant.deadline)
-  const isExpired = daysLeft < 0
+  const timeLeft = formatTimeLeft(grant.deadline)
 
   return (
     <Link href={`/grants/${grant.id}`} className="block w-full">
@@ -72,8 +71,12 @@ export function GrantRow({ grant, rank }: GrantRowProps) {
           )}
           <div className="flex items-center gap-1.5 px-3 py-1.5 border-2 border-black rounded shadow-md bg-card box-border flex-shrink-0 whitespace-nowrap">
             <Calendar className="w-4 h-4 flex-shrink-0" />
-            <span className={cn('text-xs whitespace-nowrap', isExpired && 'text-destructive')}>
-              {isExpired ? 'Ended' : daysLeft <= 7 ? `${daysLeft}d left` : formatDate(grant.deadline)}
+            <span className={cn(
+              'text-xs whitespace-nowrap',
+              timeLeft.isExpired && 'text-destructive',
+              timeLeft.isUrgent && !timeLeft.isExpired && 'text-orange-600 font-semibold'
+            )}>
+              {timeLeft.text}
             </span>
           </div>
         </div>

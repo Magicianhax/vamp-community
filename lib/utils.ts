@@ -77,6 +77,29 @@ export function getHoursUntil(date: string | Date): number {
   return Math.ceil(diff / (1000 * 60 * 60))
 }
 
+export function formatTimeLeft(date: string | Date): { text: string; isExpired: boolean; isUrgent: boolean } {
+  const now = new Date()
+  const target = new Date(date)
+  const diffMs = target.getTime() - now.getTime()
+
+  if (diffMs <= 0) {
+    return { text: 'Ended', isExpired: true, isUrgent: false }
+  }
+
+  const hours = Math.ceil(diffMs / (1000 * 60 * 60))
+  const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+
+  if (hours <= 24) {
+    return { text: `${hours}h left`, isExpired: false, isUrgent: true }
+  }
+
+  if (days <= 7) {
+    return { text: `${days}d left`, isExpired: false, isUrgent: days <= 3 }
+  }
+
+  return { text: formatDate(date), isExpired: false, isUrgent: false }
+}
+
 // Export Twitter utilities
 export { extractTwitterHandle } from './utils/twitter'
 

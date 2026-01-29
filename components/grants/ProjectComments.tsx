@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { MessageCircle, Reply } from 'lucide-react'
+import { MessageCircle, Reply, Trash2 } from 'lucide-react'
 import { TwitterAvatar } from '@/components/ui/TwitterAvatar'
 import { Card } from '@/components/retroui/Card'
 import { Button } from '@/components/retroui/Button'
@@ -28,10 +28,12 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [replyBody, setReplyBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
+      setLoading(true)
       const supabase = createClient()
       const { data, error: fetchError } = await supabase
         .from('comments')
@@ -52,11 +54,11 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [projectId])
 
   useEffect(() => {
     fetchComments()
-  }, [projectId])
+  }, [fetchComments])
 
   const topLevel = comments.filter((c) => !c.parent_id)
   const repliesByParent = comments
@@ -71,7 +73,7 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!body.trim()) return
-    
+
     if (!userId) {
       setError('Please sign in to comment')
       return
@@ -82,25 +84,19 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
 
     try {
       const supabase = createClient()
-      
-      // First get session to ensure auth state is initialized
+
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       if (sessionError || !session) {
-        if (sessionError) console.error('ProjectComments: Session error:', sessionError)
         setError('Please sign in to comment')
         setSubmitting(false)
         return
       }
-      
-      // Use session.user.id directly for reliability
+
       if (session.user.id !== userId) {
-        console.error('ProjectComments: User ID mismatch:', session.user.id, 'vs', userId)
         setError('Authentication failed. Please sign in again.')
         setSubmitting(false)
         return
       }
-      
-      console.log('ProjectComments: Inserting comment with user_id:', userId)
 
       const { error: insertError } = await supabase.from('comments').insert({
         grant_id: null,
@@ -109,7 +105,7 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
         user_id: userId,
         body: body.trim(),
       })
-      
+
       if (insertError) {
         console.error('Error posting comment:', insertError)
         setError(insertError.message || 'Failed to post comment. Please try again.')
@@ -129,7 +125,7 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
   const handleReply = async (e: React.FormEvent, parentId: string) => {
     e.preventDefault()
     if (!replyBody.trim()) return
-    
+
     if (!userId) {
       setError('Please sign in to reply')
       return
@@ -140,25 +136,19 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
 
     try {
       const supabase = createClient()
-      
-      // First get session to ensure auth state is initialized
+
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       if (sessionError || !session) {
-        if (sessionError) console.error('ProjectComments Reply: Session error:', sessionError)
         setError('Please sign in to reply')
         setSubmitting(false)
         return
       }
-      
-      // Use session.user.id directly for reliability
+
       if (session.user.id !== userId) {
-        console.error('ProjectComments Reply: User ID mismatch:', session.user.id, 'vs', userId)
         setError('Authentication failed. Please sign in again.')
         setSubmitting(false)
         return
       }
-      
-      console.log('ProjectComments Reply: Inserting reply with user_id:', userId)
 
       const { error: insertError } = await supabase.from('comments').insert({
         grant_id: null,
@@ -167,7 +157,7 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
         user_id: userId,
         body: replyBody.trim(),
       })
-      
+
       if (insertError) {
         console.error('Error posting reply:', insertError)
         setError(insertError.message || 'Failed to post reply. Please try again.')
@@ -182,6 +172,40 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleDelete = async (commentId: string) => {
+    if (!userId) return
+    if (!confirm('Are you sure you want to delete this comment?')) return
+
+    setDeleting(commentId)
+
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        setError('Please sign in to delete comments')
+        return
+      }
+
+      const { error: deleteError } = await supabase
+        .from('comments')
+        .delete()
+        .eq('id', commentId)
+
+      if (deleteError) {
+        console.error('Error deleting comment:', deleteError)
+        setError('Failed to delete comment. Please try again.')
+      } else {
+        await fetchComments()
+      }
+    } catch (err) {
+      console.error('Unexpected error deleting comment:', err)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setDeleting(null)
     }
   }
 
@@ -253,7 +277,9 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
                 replyBody={replyBody}
                 setReplyBody={setReplyBody}
                 onReply={handleReply}
+                onDelete={handleDelete}
                 submitting={submitting}
+                deleting={deleting}
               />
             </li>
           ))}
@@ -272,7 +298,9 @@ function CommentItem({
   replyBody,
   setReplyBody,
   onReply,
+  onDelete,
   submitting,
+  deleting,
 }: {
   comment: CommentWithUser
   replies: CommentWithUser[]
@@ -282,9 +310,12 @@ function CommentItem({
   replyBody: string
   setReplyBody: (s: string) => void
   onReply: (e: React.FormEvent, parentId: string) => void
+  onDelete: (commentId: string) => void
   submitting: boolean
+  deleting: string | null
 }) {
   const isReplying = replyTo === comment.id
+  const canDelete = userId && comment.user_id === userId
 
   return (
     <Card>
@@ -311,17 +342,31 @@ function CommentItem({
             <p className="text-muted-foreground text-sm mt-0.5 whitespace-pre-wrap">
               {comment.body}
             </p>
-            {userId && (
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => setReplyTo(isReplying ? null : comment.id)}
-                className="mt-1 p-0 h-auto"
-              >
-                <Reply className="w-3.5 h-3.5 mr-1" />
-                Reply
-              </Button>
-            )}
+            <div className="flex items-center gap-3 mt-1">
+              {userId && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => setReplyTo(isReplying ? null : comment.id)}
+                  className="p-0 h-auto"
+                >
+                  <Reply className="w-3.5 h-3.5 mr-1" />
+                  Reply
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => onDelete(comment.id)}
+                  disabled={deleting === comment.id}
+                  className="p-0 h-auto text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-1" />
+                  {deleting === comment.id ? 'Deleting...' : 'Delete'}
+                </Button>
+              )}
+            </div>
             {isReplying && (
               <form
                 onSubmit={(e) => onReply(e, comment.id)}
@@ -356,6 +401,7 @@ function CommentItem({
               <ul className="mt-3 pl-4 border-l-2 border-black space-y-3">
                 {replies.map((r) => {
                   const isReplyingToThis = replyTo === r.id
+                  const canDeleteReply = userId && r.user_id === userId
                   return (
                     <li key={r.id}>
                       <div className="flex gap-2">
@@ -380,17 +426,31 @@ function CommentItem({
                           <p className="text-muted-foreground text-sm mt-0.5 whitespace-pre-wrap">
                             {r.body}
                           </p>
-                          {userId && (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={() => setReplyTo(isReplyingToThis ? null : r.id)}
-                              className="mt-1 p-0 h-auto text-xs"
-                            >
-                              <Reply className="w-3 h-3 mr-1" />
-                              Reply
-                            </Button>
-                          )}
+                          <div className="flex items-center gap-3 mt-1">
+                            {userId && (
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() => setReplyTo(isReplyingToThis ? null : r.id)}
+                                className="p-0 h-auto text-xs"
+                              >
+                                <Reply className="w-3 h-3 mr-1" />
+                                Reply
+                              </Button>
+                            )}
+                            {canDeleteReply && (
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() => onDelete(r.id)}
+                                disabled={deleting === r.id}
+                                className="p-0 h-auto text-xs text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="w-3 h-3 mr-1" />
+                                {deleting === r.id ? 'Deleting...' : 'Delete'}
+                              </Button>
+                            )}
+                          </div>
                           {isReplyingToThis && (
                             <form
                               onSubmit={(e) => onReply(e, comment.id)}

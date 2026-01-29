@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Calendar, Trophy, Users } from 'lucide-react'
-import { cn, formatDate, getDaysUntil } from '@/lib/utils'
+import { cn, formatDate, formatTimeLeft } from '@/lib/utils'
 import { extractTwitterHandle } from '@/lib/utils/twitter'
 import { Badge } from '@/components/retroui/Badge'
 import { Card } from '@/components/retroui/Card'
@@ -15,9 +15,7 @@ export interface GrantCardProps {
 }
 
 export function GrantCard({ grant, className }: GrantCardProps) {
-  const daysLeft = getDaysUntil(grant.deadline)
-  const isExpired = daysLeft < 0
-  const isUrgent = daysLeft <= 7 && daysLeft >= 0
+  const timeLeft = formatTimeLeft(grant.deadline)
 
   return (
     <Link href={`/grants/${grant.id}`} className={cn('block', className)}>
@@ -70,17 +68,13 @@ export function GrantCard({ grant, className }: GrantCardProps) {
           <div className="flex items-center justify-between mt-4 pt-4 border-t-2 border-black">
             <div className="flex items-center gap-1.5 text-sm">
               <Calendar className="w-4 h-4 text-muted-foreground" />
-              {isExpired ? (
-                <span className="text-destructive">Ended {formatDate(grant.deadline)}</span>
-              ) : (
-                <span className={cn(isUrgent && 'text-destructive', 'text-muted-foreground')}>
-                  {daysLeft === 0
-                    ? 'Ends today'
-                    : daysLeft === 1
-                    ? '1 day left'
-                    : `${daysLeft} days left`}
-                </span>
-              )}
+              <span className={cn(
+                'text-muted-foreground',
+                timeLeft.isExpired && 'text-destructive',
+                timeLeft.isUrgent && !timeLeft.isExpired && 'text-orange-600 font-semibold'
+              )}>
+                {timeLeft.text}
+              </span>
             </div>
 
             {grant.submission_count !== undefined && (
