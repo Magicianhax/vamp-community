@@ -84,20 +84,23 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
       const supabase = createClient()
       
       // First get session to ensure auth state is initialized
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        if (sessionError) console.error('ProjectComments: Session error:', sessionError)
         setError('Please sign in to comment')
         setSubmitting(false)
         return
       }
       
-      // Verify user is authenticated
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user || user.id !== userId) {
+      // Use session.user.id directly for reliability
+      if (session.user.id !== userId) {
+        console.error('ProjectComments: User ID mismatch:', session.user.id, 'vs', userId)
         setError('Authentication failed. Please sign in again.')
         setSubmitting(false)
         return
       }
+      
+      console.log('ProjectComments: Inserting comment with user_id:', userId)
 
       const { error: insertError } = await supabase.from('comments').insert({
         grant_id: null,
@@ -139,20 +142,23 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
       const supabase = createClient()
       
       // First get session to ensure auth state is initialized
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        if (sessionError) console.error('ProjectComments Reply: Session error:', sessionError)
         setError('Please sign in to reply')
         setSubmitting(false)
         return
       }
       
-      // Verify user is authenticated
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user || user.id !== userId) {
+      // Use session.user.id directly for reliability
+      if (session.user.id !== userId) {
+        console.error('ProjectComments Reply: User ID mismatch:', session.user.id, 'vs', userId)
         setError('Authentication failed. Please sign in again.')
         setSubmitting(false)
         return
       }
+      
+      console.log('ProjectComments Reply: Inserting reply with user_id:', userId)
 
       const { error: insertError } = await supabase.from('comments').insert({
         grant_id: null,

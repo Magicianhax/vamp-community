@@ -38,21 +38,23 @@ export function UpvoteButton({
       const supabase = createClient()
 
       // First get session to ensure auth state is initialized
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError || !session) {
+        if (sessionError) console.error('UpvoteButton: Session error:', sessionError)
         window.location.href = '/login'
         setIsLoading(false)
         return
       }
 
-      // Verify user is authenticated
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user || user.id !== userId) {
-        console.error('Authentication error:', authError)
+      // Use session.user.id directly for reliability
+      if (!userId || session.user.id !== userId) {
+        console.error('UpvoteButton: User ID mismatch or missing:', session.user.id, 'vs', userId)
         alert('Authentication failed. Please sign in again.')
         setIsLoading(false)
         return
       }
+      
+      console.log('UpvoteButton: Voting with user_id:', userId, 'upvoted:', upvoted)
 
       if (upvoted) {
         const { error } = await supabase

@@ -171,21 +171,25 @@ export function GrantComments({ grantId, userId }: GrantCommentsProps) {
         return
       }
       
-      // Verify user is authenticated
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user || user.id !== userId) {
+      // Use session.user.id directly for reliability
+      if (session.user.id !== userId) {
+        console.error('GrantComments Reply: User ID mismatch:', session.user.id, 'vs', userId)
         setError('Authentication failed. Please sign in again.')
         setSubmitting(false)
         return
       }
 
-      const { error: insertError } = await supabase.from('comments').insert({
-        grant_id: grantId,
-        project_id: null,
-        parent_id: parentId,
-        user_id: userId,
-        body: replyBody.trim(),
-      })
+      console.log('GrantComments Reply: Inserting reply with user_id:', userId)
+      const { data: insertedData, error: insertError } = await supabase
+        .from('comments')
+        .insert({
+          grant_id: grantId,
+          project_id: null,
+          parent_id: parentId,
+          user_id: userId,
+          body: replyBody.trim(),
+        })
+        .select()
       
       if (insertError) {
         console.error('Error posting reply:', insertError)

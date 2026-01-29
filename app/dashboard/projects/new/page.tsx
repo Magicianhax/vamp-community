@@ -96,21 +96,14 @@ export default function NewProjectPage() {
         return
       }
 
-      // Then get the user
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-      if (userError) {
-        console.error('Auth error:', userError)
-        setError(`Authentication error: ${userError.message}`)
-        setIsLoading(false)
-        return
-      }
-
-      if (!user || !session) {
-        console.error('No user or session found')
+      if (!session || !session.user) {
+        console.error('No session or user found')
         router.push('/login')
         return
       }
+
+      const user = session.user
+      console.log('Project submission: User authenticated:', user.id)
 
       // Ensure user exists in users table (in case trigger didn't fire)
       const { data: existingUser } = await supabase
