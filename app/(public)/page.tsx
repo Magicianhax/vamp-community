@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import { Container } from '@/components/layout'
-import { GrantRow, ProjectRow, ResourceCard } from '@/components/cards'
+import { GrantRow, ProjectRow, ResourceRow } from '@/components/cards'
 import { TwitterAvatar } from '@/components/ui/TwitterAvatar'
 import { Card } from '@/components/retroui/Card'
 import { Button } from '@/components/retroui/Button'
 import { Text } from '@/components/retroui/Text'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowRight, Trophy, FolderOpen, BookOpen, Users } from 'lucide-react'
+import { ArrowRight, Trophy, FolderOpen, BookOpen, Users, Sparkles } from 'lucide-react'
 
 async function getActiveGrants() {
   const supabase = await createClient()
@@ -32,10 +32,12 @@ async function getProjects() {
 
 async function getResources() {
   const supabase = await createClient()
-  // Get featured resources first, then latest
+  // Get featured resources first, then latest (exclude AI tools)
   const { data } = await supabase
     .from('resources')
     .select('*')
+    .is('ai_tool_type', null)
+    .eq('status', 'approved')
     .order('is_featured', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(6)
@@ -53,6 +55,49 @@ async function getAITools() {
     .order('created_at', { ascending: false })
     .limit(6)
   return (data || []) as any[]
+}
+
+async function getResourceVotes(resourceIds: string[]) {
+  if (resourceIds.length === 0) return {}
+
+  const supabase = await createClient()
+  const { data: votes } = await supabase
+    .from('resource_votes')
+    .select('resource_id, vote_type')
+    .in('resource_id', resourceIds)
+
+  const voteCounts: Record<string, { upvotes: number; downvotes: number }> = {}
+  resourceIds.forEach(id => {
+    voteCounts[id] = { upvotes: 0, downvotes: 0 }
+  })
+
+  votes?.forEach((vote: any) => {
+    if (vote.vote_type === 'upvote') {
+      voteCounts[vote.resource_id].upvotes++
+    } else {
+      voteCounts[vote.resource_id].downvotes++
+    }
+  })
+
+  return voteCounts
+}
+
+async function getUserResourceVotes(userId: string, resourceIds: string[]) {
+  if (resourceIds.length === 0) return {}
+
+  const supabase = await createClient()
+  const { data: votes } = await supabase
+    .from('resource_votes')
+    .select('resource_id, vote_type')
+    .eq('user_id', userId)
+    .in('resource_id', resourceIds)
+
+  const userVotes: Record<string, 'upvote' | 'downvote'> = {}
+  votes?.forEach((vote: any) => {
+    userVotes[vote.resource_id] = vote.vote_type
+  })
+
+  return userVotes
 }
 
 async function getTopVibecoders() {
@@ -116,6 +161,7 @@ export default async function HomePage() {
     getCurrentUser(),
   ])
 
+  // Get project votes
   let upvoted = new Set<string>()
   let downvoted = new Set<string>()
   if (user?.id) {
@@ -129,6 +175,25 @@ export default async function HomePage() {
     has_downvoted: downvoted.has(p.id),
     downvote_count: p.downvote_count ?? 0,
     comment_count: p.comment_count ?? 0,
+  }))
+
+  // Get resource votes
+  const allResourceIds = [...resources, ...aiTools].map((r: any) => r.id)
+  const resourceVoteCounts = await getResourceVotes(allResourceIds)
+  const userResourceVotes = user?.id ? await getUserResourceVotes(user.id, allResourceIds) : {}
+
+  const resourcesWithVotes = resources.map((r: any) => ({
+    ...r,
+    upvote_count: resourceVoteCounts[r.id]?.upvotes || 0,
+    downvote_count: resourceVoteCounts[r.id]?.downvotes || 0,
+    user_vote: userResourceVotes[r.id] || null,
+  }))
+
+  const aiToolsWithVotes = aiTools.map((r: any) => ({
+    ...r,
+    upvote_count: resourceVoteCounts[r.id]?.upvotes || 0,
+    downvote_count: resourceVoteCounts[r.id]?.downvotes || 0,
+    user_vote: userResourceVotes[r.id] || null,
   }))
 
   return (
@@ -179,28 +244,23 @@ export default async function HomePage() {
             </section>
 
             {/* AI Tools Section */}
-            {aiTools.length > 0 && (
+            {aiToolsWithVotes.length > 0 && (
               <section>
                 <SectionHeader
                   title="AI Tools"
-                  href="/learn?ai_tool=true"
-                  icon={<BookOpen />}
+                  href="/learn?section=tools"
+                  icon={<Sparkles />}
                 />
-                <div className="grid md:grid-cols-2 gap-4">
-                  {aiTools.slice(0, 4).map((tool: any) => (
-                    <ResourceCard key={tool.id} resource={tool} />
+                <div className="space-y-2 w-full">
+                  {aiToolsWithVotes.slice(0, 6).map((tool: any, i: number) => (
+                    <ResourceRow
+                      key={tool.id}
+                      resource={tool}
+                      rank={i + 1}
+                      userId={user?.id}
+                    />
                   ))}
                 </div>
-                {aiTools.length > 4 && (
-                  <div className="mt-4 text-center">
-                    <Link href="/learn?ai_tool=true">
-                      <Button variant="outline" size="sm">
-                        View All AI Tools
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </Link>
-                  </div>
-                )}
               </section>
             )}
 
@@ -211,10 +271,15 @@ export default async function HomePage() {
                 href="/learn"
                 icon={<BookOpen />}
               />
-              {resources.length > 0 ? (
-                <div className="grid md:grid-cols-2 gap-4">
-                  {resources.map((resource: any) => (
-                    <ResourceCard key={resource.id} resource={resource} />
+              {resourcesWithVotes.length > 0 ? (
+                <div className="space-y-2 w-full">
+                  {resourcesWithVotes.map((resource: any, i: number) => (
+                    <ResourceRow
+                      key={resource.id}
+                      resource={resource}
+                      rank={i + 1}
+                      userId={user?.id}
+                    />
                   ))}
                 </div>
               ) : (

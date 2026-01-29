@@ -27,6 +27,8 @@ export const DASHBOARD_NAV_LINKS = [
   { href: '/dashboard/projects/new', label: 'Submit Project', icon: 'Plus' },
   { href: '/dashboard/resources', label: 'My Resources', icon: 'BookOpen' },
   { href: '/dashboard/resources/new', label: 'Submit Resource', icon: 'PenLine' },
+  { href: '/dashboard/grants', label: 'My Grants', icon: 'Trophy' },
+  { href: '/dashboard/grants/new', label: 'Sponsor Grant', icon: 'Gift' },
   { href: '/dashboard/submissions', label: 'Submissions', icon: 'Send' },
   { href: '/dashboard/settings', label: 'Settings', icon: 'Settings' },
 ] as const

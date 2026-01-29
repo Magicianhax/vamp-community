@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Container } from '@/components/layout'
-import { ResourceCard, GuideArticleCard } from '@/components/cards'
+import { ResourceRow } from '@/components/cards'
 import { Badge } from '@/components/retroui/Badge'
 import { Card } from '@/components/retroui/Card'
 import { Text } from '@/components/retroui/Text'
@@ -353,27 +353,18 @@ export default async function LearnPage({ searchParams }: LearnPageProps) {
         </Card>
       )}
 
-      {/* Resources Grid */}
+      {/* Resources List */}
       {resources.length > 0 ? (
-        // For guides section, use full-width cards with voting
-        currentSection === 'guides' ? (
-          <div className="space-y-4">
-            {resources.map((resource) => (
-              <GuideArticleCard 
-                key={resource.id} 
-                resource={resource}
-                userId={user?.id || null}
-              />
-            ))}
-          </div>
-        ) : (
-          // For other sections, use grid layout
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {resources.map((resource) => (
-              <ResourceCard key={resource.id} resource={resource} userId={user?.id || null} />
-            ))}
-          </div>
-        )
+        <div className="space-y-2">
+          {resources.map((resource, index) => (
+            <ResourceRow
+              key={resource.id}
+              resource={resource}
+              rank={index + 1}
+              userId={user?.id || null}
+            />
+          ))}
+        </div>
       ) : (
         <Card className="p-12 text-center">
           <p className="text-muted-foreground">No resources found</p>

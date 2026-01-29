@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Calendar, Trophy, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Calendar, Trophy } from 'lucide-react'
 import { Container } from '@/components/layout'
 import { Button } from '@/components/retroui/Button'
 import { Badge } from '@/components/retroui/Badge'
@@ -10,6 +10,7 @@ import { ProjectCard } from '@/components/cards'
 import { GrantImageSlideshow, GrantComments } from '@/components/grants'
 import { Markdown } from '@/components/ui/Markdown'
 import { TwitterAvatar } from '@/components/ui/TwitterAvatar'
+import { TweetEmbed } from '@/components/ui/TweetEmbed'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate, getDaysUntil } from '@/lib/utils'
 import { extractTwitterHandle } from '@/lib/utils/twitter'
@@ -169,19 +170,16 @@ export default async function GrantPage({ params }: GrantPageProps) {
             </Card.Content>
           </Card>
 
-          {/* Tweet Link */}
+          {/* Tweet Embed */}
           {grant.tweet_url && (
-            <a
-              href={grant.tweet_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2"
-            >
-              <Button variant="outline" size="sm">
-                <ExternalLink className="w-4 h-4" />
-                View announcement on X
-              </Button>
-            </a>
+            <Card className="mb-6">
+              <Card.Header>
+                <Text as="h2" className="text-base font-head font-semibold">Announcement</Text>
+              </Card.Header>
+              <Card.Content>
+                <TweetEmbed tweetUrl={grant.tweet_url} />
+              </Card.Content>
+            </Card>
           )}
 
           {/* Winners */}

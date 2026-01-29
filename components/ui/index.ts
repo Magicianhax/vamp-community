@@ -47,6 +47,9 @@ export type { ImageUploadProps, ArticleImageUploadProps, ImageSize, ImageSizeCon
 export { DeleteProjectButton } from './DeleteProjectButton'
 export type { DeleteProjectButtonProps } from './DeleteProjectButton'
 
+export { TweetEmbed } from './TweetEmbed'
+export type { TweetEmbedProps } from './TweetEmbed'
+
 // Legacy components
 export { Modal, ConfirmModal } from './Modal'
 export type { ModalProps, ConfirmModalProps } from './Modal'
