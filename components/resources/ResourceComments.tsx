@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { MessageCircle, Reply } from 'lucide-react'
+import { MessageCircle, Reply, Trash2 } from 'lucide-react'
 import { TwitterAvatar } from '@/components/ui/TwitterAvatar'
 import { Card } from '@/components/retroui/Card'
 import { Button } from '@/components/retroui/Button'
@@ -15,13 +15,14 @@ import type { Comment } from '@/types'
 export interface ResourceCommentsProps {
   resourceId: string
   userId: string | null
+  isAdmin?: boolean
 }
 
 interface CommentWithUser extends Omit<Comment, 'user'> {
   user?: { id: string; username: string; display_name: string | null; avatar_url: string | null; twitter_handle: string | null }
 }
 
-export function ResourceComments({ resourceId, userId }: ResourceCommentsProps) {
+export function ResourceComments({ resourceId, userId, isAdmin = false }: ResourceCommentsProps) {
   const [comments, setComments] = useState<CommentWithUser[]>([])
   const [loading, setLoading] = useState(true)
   const [body, setBody] = useState('')
@@ -29,6 +30,7 @@ export function ResourceComments({ resourceId, userId }: ResourceCommentsProps) 
   const [replyBody, setReplyBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   const fetchComments = async () => {
     try {
@@ -187,6 +189,40 @@ export function ResourceComments({ resourceId, userId }: ResourceCommentsProps) 
     }
   }
 
+  const handleDelete = async (commentId: string) => {
+    if (!userId) return
+    if (!confirm('Are you sure you want to delete this comment?')) return
+
+    setDeleting(commentId)
+
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        setError('Please sign in to delete comments')
+        return
+      }
+
+      const { error: deleteError } = await supabase
+        .from('comments')
+        .delete()
+        .eq('id', commentId)
+
+      if (deleteError) {
+        console.error('Error deleting comment:', deleteError)
+        setError('Failed to delete comment. Please try again.')
+      } else {
+        await fetchComments()
+      }
+    } catch (err) {
+      console.error('Unexpected error deleting comment:', err)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setDeleting(null)
+    }
+  }
+
   return (
     <div id="comments" className="mt-10 pt-8 border-t-2 border-black">
       <Text as="h2" className="text-lg font-head font-semibold flex items-center gap-2 mb-4">
@@ -250,12 +286,15 @@ export function ResourceComments({ resourceId, userId }: ResourceCommentsProps) 
                 comment={comment}
                 replies={repliesByParent[comment.id] || []}
                 userId={userId}
+                isAdmin={isAdmin}
                 replyTo={replyTo}
                 setReplyTo={setReplyTo}
                 replyBody={replyBody}
                 setReplyBody={setReplyBody}
                 onReply={handleReply}
+                onDelete={handleDelete}
                 submitting={submitting}
+                deleting={deleting}
               />
             </li>
           ))}
@@ -269,24 +308,31 @@ function CommentItem({
   comment,
   replies,
   userId,
+  isAdmin,
   replyTo,
   setReplyTo,
   replyBody,
   setReplyBody,
   onReply,
+  onDelete,
   submitting,
+  deleting,
 }: {
   comment: CommentWithUser
   replies: CommentWithUser[]
   userId: string | null
+  isAdmin: boolean
   replyTo: string | null
   setReplyTo: (id: string | null) => void
   replyBody: string
   setReplyBody: (s: string) => void
   onReply: (e: React.FormEvent, parentId: string) => void
+  onDelete: (commentId: string) => void
   submitting: boolean
+  deleting: string | null
 }) {
   const isReplying = replyTo === comment.id
+  const canDelete = userId && (comment.user_id === userId || isAdmin)
 
   return (
     <Card>
@@ -313,17 +359,31 @@ function CommentItem({
             <p className="text-muted-foreground text-sm mt-0.5 whitespace-pre-wrap">
               {comment.body}
             </p>
-            {userId && (
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => setReplyTo(isReplying ? null : comment.id)}
-                className="mt-1 p-0 h-auto"
-              >
-                <Reply className="w-3.5 h-3.5 mr-1" />
-                Reply
-              </Button>
-            )}
+            <div className="flex items-center gap-3 mt-1">
+              {userId && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => setReplyTo(isReplying ? null : comment.id)}
+                  className="p-0 h-auto"
+                >
+                  <Reply className="w-3.5 h-3.5 mr-1" />
+                  Reply
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={() => onDelete(comment.id)}
+                  disabled={deleting === comment.id}
+                  className="p-0 h-auto text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-1" />
+                  {deleting === comment.id ? 'Deleting...' : 'Delete'}
+                </Button>
+              )}
+            </div>
             {isReplying && (
               <form
                 onSubmit={(e) => onReply(e, comment.id)}

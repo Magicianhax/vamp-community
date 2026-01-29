@@ -1,10 +1,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { MessageCircle, PencilLine, ChevronUp, ChevronDown } from 'lucide-react'
+import { MessageCircle, PencilLine } from 'lucide-react'
 import { Button } from '@/components/retroui/Button'
 import { Badge } from '@/components/retroui/Badge'
 import { Card } from '@/components/retroui/Card'
-import { UpvoteButton, DownvoteButton } from '@/components/ui'
+import { ProjectVoteButtons } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import type { Project } from '@/types'
 
@@ -65,17 +65,11 @@ export function ProjectRow({ project, rank, userId }: ProjectRowProps) {
 
       {/* Count boxes: upvote, downvote, comments */}
       <div className="flex items-center gap-2 flex-shrink-0">
-        <UpvoteButton
+        <ProjectVoteButtons
           projectId={project.id}
-          initialCount={project.upvote_count}
-          initialUpvoted={project.has_upvoted}
-          userId={userId}
-          size="sm"
-        />
-        <DownvoteButton
-          projectId={project.id}
-          initialCount={project.downvote_count ?? 0}
-          initialDownvoted={project.has_downvoted}
+          initialUpvoteCount={project.upvote_count}
+          initialDownvoteCount={project.downvote_count ?? 0}
+          initialUserVote={project.has_upvoted ? 'upvote' : project.has_downvoted ? 'downvote' : null}
           userId={userId}
           size="sm"
         />

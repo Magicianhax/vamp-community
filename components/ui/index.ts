@@ -29,6 +29,9 @@ export type { UpvoteButtonProps } from './UpvoteButton'
 export { DownvoteButton } from './DownvoteButton'
 export type { DownvoteButtonProps } from './DownvoteButton'
 
+export { ProjectVoteButtons } from './ProjectVoteButtons'
+export type { ProjectVoteButtonsProps } from './ProjectVoteButtons'
+
 export { SignInModal } from './SignInModal'
 export { SearchModal } from './SearchModal'
 export type { SearchModalProps } from './SearchModal'

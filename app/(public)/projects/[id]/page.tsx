@@ -8,7 +8,8 @@ import { Badge } from '@/components/retroui/Badge'
 import { Card } from '@/components/retroui/Card'
 import { Text } from '@/components/retroui/Text'
 import { TwitterAvatar } from '@/components/ui/TwitterAvatar'
-import { UpvoteButton } from '@/components/ui'
+import { ProjectVoteButtons } from '@/components/ui'
+import { Markdown } from '@/components/ui/Markdown'
 import { ProjectComments } from '@/components/grants'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate } from '@/lib/utils'
@@ -37,17 +38,17 @@ async function getCurrentUser() {
   return user
 }
 
-async function checkUpvote(userId: string, projectId: string) {
+async function getUserVote(userId: string, projectId: string): Promise<'upvote' | 'downvote' | null> {
   const supabase = await createClient()
 
-  const { data } = await supabase
-    .from('upvotes')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('project_id', projectId)
-    .single()
+  const [upvote, downvote] = await Promise.all([
+    supabase.from('upvotes').select('id').eq('user_id', userId).eq('project_id', projectId).single(),
+    supabase.from('downvotes').select('id').eq('user_id', userId).eq('project_id', projectId).single(),
+  ])
 
-  return !!data
+  if (upvote.data) return 'upvote'
+  if (downvote.data) return 'downvote'
+  return null
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
@@ -58,7 +59,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   }
 
   const user = await getCurrentUser()
-  const hasUpvoted = user ? await checkUpvote(user.id, project.id) : false
+  const userVote = user ? await getUserVote(user.id, project.id) : null
 
   return (
     <Container className="py-12">
@@ -104,10 +105,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                   <p className="text-lg text-muted-foreground mt-1">{project.tagline}</p>
                 </div>
 
-                <UpvoteButton
+                <ProjectVoteButtons
                   projectId={project.id}
-                  initialCount={project.upvote_count}
-                  initialUpvoted={hasUpvoted}
+                  initialUpvoteCount={project.upvote_count}
+                  initialDownvoteCount={project.downvote_count || 0}
+                  initialUserVote={userVote}
                   userId={user?.id}
                 />
               </div>
@@ -146,9 +148,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </Card.Header>
             <Card.Content>
               <div className="prose prose-invert max-w-none">
-                <p className="text-muted-foreground whitespace-pre-wrap">
-                  {project.description}
-                </p>
+                <Markdown content={project.description} />
               </div>
             </Card.Content>
           </Card>

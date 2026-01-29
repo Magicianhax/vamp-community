@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { MessageCircle, Reply } from 'lucide-react'
+import { MessageCircle, Reply, Trash2 } from 'lucide-react'
 import { TwitterAvatar } from '@/components/ui/TwitterAvatar'
 import { Card } from '@/components/retroui/Card'
 import { Button } from '@/components/retroui/Button'
@@ -15,13 +15,14 @@ import type { Comment } from '@/types'
 export interface GrantCommentsProps {
   grantId: string
   userId: string | null
+  isAdmin?: boolean
 }
 
 interface CommentWithUser extends Omit<Comment, 'user'> {
   user?: { id: string; username: string; display_name: string | null; avatar_url: string | null; twitter_handle: string | null }
 }
 
-export function GrantComments({ grantId, userId }: GrantCommentsProps) {
+export function GrantComments({ grantId, userId, isAdmin = false }: GrantCommentsProps) {
   const [comments, setComments] = useState<CommentWithUser[]>([])
   const [loading, setLoading] = useState(true)
   const [body, setBody] = useState('')
@@ -29,6 +30,7 @@ export function GrantComments({ grantId, userId }: GrantCommentsProps) {
   const [replyBody, setReplyBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   const fetchComments = async () => {
     try {
@@ -205,6 +207,40 @@ export function GrantComments({ grantId, userId }: GrantCommentsProps) {
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleDelete = async (commentId: string) => {
+    if (!userId) return
+    if (!confirm('Are you sure you want to delete this comment?')) return
+
+    setDeleting(commentId)
+
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (!session) {
+        setError('Please sign in to delete comments')
+        return
+      }
+
+      const { error: deleteError } = await supabase
+        .from('comments')
+        .delete()
+        .eq('id', commentId)
+
+      if (deleteError) {
+        console.error('Error deleting comment:', deleteError)
+        setError('Failed to delete comment. Please try again.')
+      } else {
+        await fetchComments()
+      }
+    } catch (err) {
+      console.error('Unexpected error deleting comment:', err)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setDeleting(null)
     }
   }
 
