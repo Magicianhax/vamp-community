@@ -37,6 +37,15 @@ export function UpvoteButton({
     try {
       const supabase = createClient()
 
+      // Verify user is authenticated
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user || user.id !== userId) {
+        console.error('Authentication error:', authError)
+        alert('Authentication failed. Please sign in again.')
+        setIsLoading(false)
+        return
+      }
+
       if (upvoted) {
         const { error } = await supabase
           .from('upvotes')
@@ -44,7 +53,10 @@ export function UpvoteButton({
           .eq('user_id', userId)
           .eq('project_id', projectId)
 
-        if (!error) {
+        if (error) {
+          console.error('Error removing upvote:', error)
+          alert('Failed to remove upvote. Please try again.')
+        } else {
           setCount((prev) => prev - 1)
           setUpvoted(false)
         }
@@ -53,13 +65,17 @@ export function UpvoteButton({
           .from('upvotes')
           .insert({ user_id: userId, project_id: projectId })
 
-        if (!error) {
+        if (error) {
+          console.error('Error adding upvote:', error)
+          alert(error.message || 'Failed to upvote. Please try again.')
+        } else {
           setCount((prev) => prev + 1)
           setUpvoted(true)
         }
       }
     } catch (error) {
-      console.error('Upvote error:', error)
+      console.error('Unexpected upvote error:', error)
+      alert('An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }

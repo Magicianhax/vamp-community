@@ -28,17 +28,30 @@ export function GrantComments({ grantId, userId }: GrantCommentsProps) {
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [replyBody, setReplyBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchComments = async () => {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('comments')
-      .select('*, user:users(id, username, display_name, avatar_url, twitter_handle)')
-      .eq('grant_id', grantId)
-      .order('created_at', { ascending: true })
+    try {
+      const supabase = createClient()
+      const { data, error: fetchError } = await supabase
+        .from('comments')
+        .select('*, user:users(id, username, display_name, avatar_url, twitter_handle)')
+        .eq('grant_id', grantId)
+        .order('created_at', { ascending: true })
 
-    setComments((data as CommentWithUser[]) || [])
-    setLoading(false)
+      if (fetchError) {
+        console.error('Error fetching comments:', fetchError)
+        setError('Failed to load comments')
+      } else {
+        setComments((data as CommentWithUser[]) || [])
+        setError(null)
+      }
+    } catch (err) {
+      console.error('Unexpected error fetching comments:', err)
+      setError('Failed to load comments')
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -57,41 +70,97 @@ export function GrantComments({ grantId, userId }: GrantCommentsProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!body.trim() || !userId) return
-    setSubmitting(true)
-    const supabase = createClient()
-    const { error } = await supabase.from('comments').insert({
-      grant_id: grantId,
-      project_id: null,
-      parent_id: null,
-      user_id: userId,
-      body: body.trim(),
-    })
-    if (!error) {
-      setBody('')
-      await fetchComments()
+    if (!body.trim()) return
+    
+    if (!userId) {
+      setError('Please sign in to comment')
+      return
     }
-    setSubmitting(false)
+
+    setSubmitting(true)
+    setError(null)
+
+    try {
+      const supabase = createClient()
+      
+      // Verify user is authenticated
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user || user.id !== userId) {
+        setError('Authentication failed. Please sign in again.')
+        setSubmitting(false)
+        return
+      }
+
+      const { error: insertError } = await supabase.from('comments').insert({
+        grant_id: grantId,
+        project_id: null,
+        parent_id: null,
+        user_id: userId,
+        body: body.trim(),
+      })
+      
+      if (insertError) {
+        console.error('Error posting comment:', insertError)
+        setError(insertError.message || 'Failed to post comment. Please try again.')
+      } else {
+        setBody('')
+        setError(null)
+        await fetchComments()
+      }
+    } catch (err) {
+      console.error('Unexpected error posting comment:', err)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleReply = async (e: React.FormEvent, parentId: string) => {
     e.preventDefault()
-    if (!replyBody.trim() || !userId) return
-    setSubmitting(true)
-    const supabase = createClient()
-    const { error } = await supabase.from('comments').insert({
-      grant_id: grantId,
-      project_id: null,
-      parent_id: parentId,
-      user_id: userId,
-      body: replyBody.trim(),
-    })
-    if (!error) {
-      setReplyTo(null)
-      setReplyBody('')
-      await fetchComments()
+    if (!replyBody.trim()) return
+    
+    if (!userId) {
+      setError('Please sign in to reply')
+      return
     }
-    setSubmitting(false)
+
+    setSubmitting(true)
+    setError(null)
+
+    try {
+      const supabase = createClient()
+      
+      // Verify user is authenticated
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user || user.id !== userId) {
+        setError('Authentication failed. Please sign in again.')
+        setSubmitting(false)
+        return
+      }
+
+      const { error: insertError } = await supabase.from('comments').insert({
+        grant_id: grantId,
+        project_id: null,
+        parent_id: parentId,
+        user_id: userId,
+        body: replyBody.trim(),
+      })
+      
+      if (insertError) {
+        console.error('Error posting reply:', insertError)
+        setError(insertError.message || 'Failed to post reply. Please try again.')
+      } else {
+        setReplyTo(null)
+        setReplyBody('')
+        setError(null)
+        await fetchComments()
+      }
+    } catch (err) {
+      console.error('Unexpected error posting reply:', err)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -104,6 +173,11 @@ export function GrantComments({ grantId, userId }: GrantCommentsProps) {
       {userId && (
         <Card className="mb-6">
           <Card.Content>
+            {error && (
+              <div className="mb-3 p-2 bg-red-50 border border-red-200 text-red-700 text-sm rounded">
+                {error}
+              </div>
+            )}
             <form onSubmit={handleSubmit}>
               <textarea
                 value={body}

@@ -37,6 +37,15 @@ export function DownvoteButton({
     try {
       const supabase = createClient()
 
+      // Verify user is authenticated
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user || user.id !== userId) {
+        console.error('Authentication error:', authError)
+        alert('Authentication failed. Please sign in again.')
+        setIsLoading(false)
+        return
+      }
+
       if (downvoted) {
         const { error } = await supabase
           .from('downvotes')
@@ -44,7 +53,10 @@ export function DownvoteButton({
           .eq('user_id', userId)
           .eq('project_id', projectId)
 
-        if (!error) {
+        if (error) {
+          console.error('Error removing downvote:', error)
+          alert('Failed to remove downvote. Please try again.')
+        } else {
           setCount((prev) => prev - 1)
           setDownvoted(false)
         }
@@ -53,13 +65,17 @@ export function DownvoteButton({
           .from('downvotes')
           .insert({ user_id: userId, project_id: projectId })
 
-        if (!error) {
+        if (error) {
+          console.error('Error adding downvote:', error)
+          alert(error.message || 'Failed to downvote. Please try again.')
+        } else {
           setCount((prev) => prev + 1)
           setDownvoted(true)
         }
       }
     } catch (error) {
-      console.error('Downvote error:', error)
+      console.error('Unexpected downvote error:', error)
+      alert('An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }

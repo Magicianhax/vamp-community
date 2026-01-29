@@ -38,6 +38,15 @@ export function ResourceVoteButton({
     try {
       const supabase = createClient()
 
+      // Verify user is authenticated
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      if (authError || !user || user.id !== userId) {
+        console.error('Authentication error:', authError)
+        alert('Authentication failed. Please sign in again.')
+        setIsLoading(false)
+        return
+      }
+
       // If clicking the same vote, remove it
       if (userVote === voteType) {
         const { error } = await supabase
@@ -46,7 +55,10 @@ export function ResourceVoteButton({
           .eq('user_id', userId)
           .eq('resource_id', resourceId)
 
-        if (!error) {
+        if (error) {
+          console.error('Error removing vote:', error)
+          alert('Failed to remove vote. Please try again.')
+        } else {
           if (voteType === 'upvote') {
             setUpvotes((prev) => Math.max(0, prev - 1))
           } else {
@@ -57,16 +69,18 @@ export function ResourceVoteButton({
       } else {
         // Remove existing vote if any
         if (userVote) {
-          await supabase
+          const { error: deleteError } = await supabase
             .from('resource_votes')
             .delete()
             .eq('user_id', userId)
             .eq('resource_id', resourceId)
 
-          if (userVote === 'upvote') {
-            setUpvotes((prev) => Math.max(0, prev - 1))
-          } else {
-            setDownvotes((prev) => Math.max(0, prev - 1))
+          if (!deleteError) {
+            if (userVote === 'upvote') {
+              setUpvotes((prev) => Math.max(0, prev - 1))
+            } else {
+              setDownvotes((prev) => Math.max(0, prev - 1))
+            }
           }
         }
 
@@ -75,7 +89,10 @@ export function ResourceVoteButton({
           .from('resource_votes')
           .insert({ user_id: userId, resource_id: resourceId, vote_type: voteType })
 
-        if (!error) {
+        if (error) {
+          console.error('Error adding vote:', error)
+          alert(error.message || 'Failed to vote. Please try again.')
+        } else {
           if (voteType === 'upvote') {
             setUpvotes((prev) => prev + 1)
           } else {
@@ -85,7 +102,8 @@ export function ResourceVoteButton({
         }
       }
     } catch (error) {
-      console.error('Vote error:', error)
+      console.error('Unexpected vote error:', error)
+      alert('An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
