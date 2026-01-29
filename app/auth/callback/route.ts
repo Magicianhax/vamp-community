@@ -12,13 +12,47 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      // After successful OAuth, refresh the avatar from X API in the background
-      // This ensures we have a fresh, high-resolution image stored
-      // We'll do this server-side to ensure proper authentication
+      // After successful OAuth, ensure user exists in users table
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
-          // Get user profile to check for twitter_handle
+          // Check if user exists in users table
+          const { data: existingUser } = await supabase
+            .from('users')
+            .select('id, twitter_handle')
+            .eq('id', user.id)
+            .single()
+
+          // If user doesn't exist, create them (trigger might have failed)
+          if (!existingUser) {
+            console.log('User not found in users table, creating profile...')
+            const twitterUsername = user.user_metadata?.user_name || user.user_metadata?.preferred_username
+            const twitterName = user.user_metadata?.name || user.user_metadata?.full_name
+            const twitterAvatar = user.user_metadata?.avatar_url
+            
+            const username = twitterUsername || 
+                            user.email?.split('@')[0] || 
+                            `user_${user.id.slice(0, 8)}`
+
+            const { error: createError } = await supabase
+              .from('users')
+              .insert({
+                id: user.id,
+                email: user.email,
+                username: username.toLowerCase(),
+                display_name: twitterName || username,
+                avatar_url: twitterAvatar || null,
+                twitter_handle: twitterUsername || null,
+              })
+
+            if (createError) {
+              console.error('Error creating user profile:', createError)
+            } else {
+              console.log('User profile created successfully')
+            }
+          }
+
+          // Get user profile to check for twitter_handle (now it should exist)
           const { data: userProfile } = await supabase
             .from('users')
             .select('twitter_handle')

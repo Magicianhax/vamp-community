@@ -49,13 +49,44 @@ export function Header() {
 
             if (authUser) {
               console.log('Header: User found, fetching profile...', authUser.id)
-              const { data, error: profileError } = await supabase
+              let { data, error: profileError } = await supabase
                 .from('users')
                 .select('*')
                 .eq('id', authUser.id)
                 .single()
 
-              if (profileError) {
+              // If user doesn't exist, create them
+              if (profileError && profileError.code === 'PGRST116') {
+                console.log('Header: User profile not found, creating...')
+                const twitterUsername = authUser.user_metadata?.user_name || authUser.user_metadata?.preferred_username
+                const twitterName = authUser.user_metadata?.name || authUser.user_metadata?.full_name
+                const twitterAvatar = authUser.user_metadata?.avatar_url
+                
+                const username = twitterUsername || 
+                                authUser.email?.split('@')[0] || 
+                                `user_${authUser.id.slice(0, 8)}`
+
+                const { data: newUser, error: createError } = await supabase
+                  .from('users')
+                  .insert({
+                    id: authUser.id,
+                    email: authUser.email,
+                    username: username.toLowerCase(),
+                    display_name: twitterName || username,
+                    avatar_url: twitterAvatar || null,
+                    twitter_handle: twitterUsername || null,
+                  })
+                  .select()
+                  .single()
+
+                if (createError) {
+                  console.error('Header: Error creating user:', createError)
+                } else {
+                  console.log('Header: User profile created:', newUser?.username)
+                  data = newUser
+                  profileError = null
+                }
+              } else if (profileError) {
                 console.error('Header: Profile error:', profileError)
               } else {
                 console.log('Header: Profile loaded:', data?.username)
