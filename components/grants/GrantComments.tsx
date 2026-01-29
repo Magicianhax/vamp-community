@@ -88,33 +88,54 @@ export function GrantComments({ grantId, userId }: GrantCommentsProps) {
       const supabase = createClient()
       
       // First get session to ensure auth state is initialized
-      const { data: { session } } = await supabase.auth.getSession()
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError) {
+        console.error('GrantComments: Session error:', sessionError)
+        setError('Authentication error. Please refresh the page and try again.')
+        setSubmitting(false)
+        return
+      }
+      
       if (!session) {
+        console.log('GrantComments: No session found')
         setError('Please sign in to comment')
         setSubmitting(false)
         return
       }
       
-      // Verify user is authenticated
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user || user.id !== userId) {
+      console.log('GrantComments: Session found, user ID:', session.user.id, 'Expected:', userId)
+      
+      // Verify user is authenticated - use session.user.id instead of getUser() for reliability
+      if (session.user.id !== userId) {
+        console.error('GrantComments: User ID mismatch:', session.user.id, 'vs', userId)
         setError('Authentication failed. Please sign in again.')
         setSubmitting(false)
         return
       }
 
-      const { error: insertError } = await supabase.from('comments').insert({
-        grant_id: grantId,
-        project_id: null,
-        parent_id: null,
-        user_id: userId,
-        body: body.trim(),
-      })
+      console.log('GrantComments: Inserting comment with user_id:', userId)
+      const { data: insertedData, error: insertError } = await supabase
+        .from('comments')
+        .insert({
+          grant_id: grantId,
+          project_id: null,
+          parent_id: null,
+          user_id: userId,
+          body: body.trim(),
+        })
+        .select()
       
       if (insertError) {
-        console.error('Error posting comment:', insertError)
+        console.error('GrantComments: Error posting comment:', insertError)
+        console.error('GrantComments: Error details:', {
+          code: insertError.code,
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint,
+        })
         setError(insertError.message || 'Failed to post comment. Please try again.')
       } else {
+        console.log('GrantComments: Comment posted successfully:', insertedData)
         setBody('')
         setError(null)
         await fetchComments()

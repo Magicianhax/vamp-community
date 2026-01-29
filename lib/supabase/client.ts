@@ -33,7 +33,14 @@ export function createClient() {
       client = createBrowserClient(supabaseUrl, supabaseAnonKey)
       
       // Ensure session is refreshed on client creation
-      client.auth.getSession().catch((error) => {
+      // This is important for serverless environments where cookies need to be read
+      client.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          console.log('Supabase client: Session loaded on init')
+        } else {
+          console.log('Supabase client: No session found on init')
+        }
+      }).catch((error) => {
         console.error('Error getting session on client init:', error)
       })
     } catch (error) {
