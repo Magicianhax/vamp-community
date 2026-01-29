@@ -18,41 +18,14 @@ interface ProfilePageProps {
 async function getUser(username: string) {
   const supabase = await createClient()
 
-  // Try exact match first (preserves case)
-  let { data, error } = await supabase
+  // Normalize username to lowercase (all usernames are stored in lowercase)
+  const normalizedUsername = username.toLowerCase()
+
+  const { data, error } = await supabase
     .from('users')
     .select('*')
-    .eq('username', username)
+    .eq('username', normalizedUsername)
     .maybeSingle()
-
-  // If not found, try lowercase
-  if (!data && !error) {
-    const { data: lowerData, error: lowerError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('username', username.toLowerCase())
-      .maybeSingle()
-    
-    if (lowerData) {
-      data = lowerData
-    }
-    if (lowerError) {
-      error = lowerError
-    }
-  }
-
-  // If still not found, try case-insensitive using Postgres function
-  if (!data && !error) {
-    const { data: caseInsensitiveData, error: caseError } = await supabase
-      .rpc('get_user_by_username_case_insensitive', { username_param: username })
-    
-    if (caseInsensitiveData && caseInsensitiveData.length > 0) {
-      data = caseInsensitiveData[0]
-    }
-    if (caseError) {
-      error = caseError
-    }
-  }
 
   if (error) {
     console.error('Error fetching user:', error)
