@@ -2,8 +2,12 @@
 export { Button } from '@/components/retroui/Button'
 export type { IButtonProps as ButtonProps } from '@/components/retroui/Button'
 
-export { Input } from '@/components/retroui/Input'
-export type { InputProps } from '@/components/retroui/Input'
+// Form Input with label support (used in forms)
+export { Input, Textarea, Select } from './Input'
+export type { InputProps, TextareaProps, SelectProps } from './Input'
+
+// Basic Input without label (retroui)
+export { Input as BasicInput } from '@/components/retroui/Input'
 
 export { Badge } from '@/components/retroui/Badge'
 
@@ -32,10 +36,6 @@ export { TwitterAvatar } from './TwitterAvatar'
 export type { TwitterAvatarProps } from './TwitterAvatar'
 
 export { Markdown } from './Markdown'
-
-// Form components with labels (RetroUI styled)
-export { Input as InputWithLabel, Textarea, Select } from './Input'
-export type { InputProps as InputWithLabelProps, TextareaProps, SelectProps } from './Input'
 
 // Legacy components
 export { Modal, ConfirmModal } from './Modal'
