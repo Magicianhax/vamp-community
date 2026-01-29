@@ -115,17 +115,17 @@ export default function NewProjectPage() {
       if (!existingUser) {
         console.log('User not found in users table, creating...')
         // Extract username from email or use a default
-        const username = user.email?.split('@')[0] || 
+        const username = (user.email?.split('@')[0] || 
                         user.user_metadata?.user_name || 
                         user.user_metadata?.preferred_username ||
-                        `user_${user.id.slice(0, 8)}`
+                        `user_${user.id.slice(0, 8)}`).toLowerCase()
         
         const { error: createUserError } = await supabase
           .from('users')
           .insert({
             id: user.id,
             email: user.email,
-            username: username.toLowerCase(),
+            username: username, // Already lowercase
             display_name: user.user_metadata?.name || user.user_metadata?.full_name || username,
             avatar_url: user.user_metadata?.avatar_url || null,
             twitter_handle: user.user_metadata?.user_name || null,

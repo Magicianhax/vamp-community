@@ -30,16 +30,16 @@ export async function GET(request: NextRequest) {
             const twitterName = user.user_metadata?.name || user.user_metadata?.full_name
             const twitterAvatar = user.user_metadata?.avatar_url
             
-            const username = twitterUsername || 
+            const username = (twitterUsername || 
                             user.email?.split('@')[0] || 
-                            `user_${user.id.slice(0, 8)}`
+                            `user_${user.id.slice(0, 8)}`).toLowerCase()
 
             const { error: createError } = await supabase
               .from('users')
               .insert({
                 id: user.id,
                 email: user.email,
-                username: username.toLowerCase(),
+                username: username, // Already lowercase
                 display_name: twitterName || username,
                 avatar_url: twitterAvatar || null,
                 twitter_handle: twitterUsername || null,

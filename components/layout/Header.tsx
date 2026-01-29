@@ -62,16 +62,16 @@ export function Header() {
                 const twitterName = authUser.user_metadata?.name || authUser.user_metadata?.full_name
                 const twitterAvatar = authUser.user_metadata?.avatar_url
                 
-                const username = twitterUsername || 
+                const username = (twitterUsername || 
                                 authUser.email?.split('@')[0] || 
-                                `user_${authUser.id.slice(0, 8)}`
+                                `user_${authUser.id.slice(0, 8)}`).toLowerCase()
 
                 const { data: newUser, error: createError } = await supabase
                   .from('users')
                   .insert({
                     id: authUser.id,
                     email: authUser.email,
-                    username: username.toLowerCase(),
+                    username: username, // Already lowercase
                     display_name: twitterName || username,
                     avatar_url: twitterAvatar || null,
                     twitter_handle: twitterUsername || null,
