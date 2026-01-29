@@ -83,6 +83,14 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
     try {
       const supabase = createClient()
       
+      // First get session to ensure auth state is initialized
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setError('Please sign in to comment')
+        setSubmitting(false)
+        return
+      }
+      
       // Verify user is authenticated
       const { data: { user }, error: authError } = await supabase.auth.getUser()
       if (authError || !user || user.id !== userId) {
@@ -129,6 +137,14 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
 
     try {
       const supabase = createClient()
+      
+      // First get session to ensure auth state is initialized
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setError('Please sign in to reply')
+        setSubmitting(false)
+        return
+      }
       
       // Verify user is authenticated
       const { data: { user }, error: authError } = await supabase.auth.getUser()

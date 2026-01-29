@@ -37,6 +37,14 @@ export function DownvoteButton({
     try {
       const supabase = createClient()
 
+      // First get session to ensure auth state is initialized
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        window.location.href = '/login'
+        setIsLoading(false)
+        return
+      }
+
       // Verify user is authenticated
       const { data: { user }, error: authError } = await supabase.auth.getUser()
       if (authError || !user || user.id !== userId) {
