@@ -356,34 +356,78 @@ function CommentItem({
             )}
             {replies.length > 0 && (
               <ul className="mt-3 pl-4 border-l-2 border-black space-y-3">
-                {replies.map((r) => (
-                  <li key={r.id}>
-                    <div className="flex gap-2">
-                      <TwitterAvatar
-                        className="w-8 h-8"
-                        src={r.user?.avatar_url ?? undefined}
-                        alt={r.user?.display_name || r.user?.username || 'User'}
-                        twitterHandle={r.user?.twitter_handle ?? undefined}
-                        userId={r.user?.id}
-                      />
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Link href={`/u/${r.user?.username}`}>
-                            <Text as="span" className="font-head font-medium text-sm">
-                              {r.user?.display_name || r.user?.username || 'User'}
-                            </Text>
-                          </Link>
-                          <span className="text-xs text-muted-foreground">
-                            {formatRelativeTime(r.created_at)}
-                          </span>
+                {replies.map((r) => {
+                  const isReplyingToThis = replyTo === r.id
+                  return (
+                    <li key={r.id}>
+                      <div className="flex gap-2">
+                        <TwitterAvatar
+                          className="w-8 h-8"
+                          src={r.user?.avatar_url ?? undefined}
+                          alt={r.user?.display_name || r.user?.username || 'User'}
+                          twitterHandle={r.user?.twitter_handle ?? undefined}
+                          userId={r.user?.id}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Link href={`/u/${r.user?.username}`}>
+                              <Text as="span" className="font-head font-medium text-sm">
+                                {r.user?.display_name || r.user?.username || 'User'}
+                              </Text>
+                            </Link>
+                            <span className="text-xs text-muted-foreground">
+                              {formatRelativeTime(r.created_at)}
+                            </span>
+                          </div>
+                          <p className="text-muted-foreground text-sm mt-0.5 whitespace-pre-wrap">
+                            {r.body}
+                          </p>
+                          {userId && (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              onClick={() => setReplyTo(isReplyingToThis ? null : r.id)}
+                              className="mt-1 p-0 h-auto text-xs"
+                            >
+                              <Reply className="w-3 h-3 mr-1" />
+                              Reply
+                            </Button>
+                          )}
+                          {isReplyingToThis && (
+                            <form
+                              onSubmit={(e) => onReply(e, comment.id)}
+                              className="mt-2 flex gap-2"
+                            >
+                              <Input
+                                type="text"
+                                value={replyBody}
+                                onChange={(e) => setReplyBody(e.target.value)}
+                                placeholder={`Reply to ${r.user?.display_name || r.user?.username}...`}
+                                disabled={submitting}
+                                className="flex-1"
+                              />
+                              <Button
+                                type="submit"
+                                disabled={submitting || !replyBody.trim()}
+                                size="sm"
+                              >
+                                Reply
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => { setReplyTo(null); setReplyBody('') }}
+                              >
+                                Cancel
+                              </Button>
+                            </form>
+                          )}
                         </div>
-                        <p className="text-muted-foreground text-sm mt-0.5 whitespace-pre-wrap">
-                          {r.body}
-                        </p>
                       </div>
-                    </div>
-                  </li>
-                ))}
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </div>

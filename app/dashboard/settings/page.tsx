@@ -23,13 +23,14 @@ export default function SettingsPage() {
   useEffect(() => {
     const fetchUser = async () => {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
 
-      if (!user) {
+      if (!session?.user) {
         router.push('/login')
         return
       }
 
+      const user = session.user
       const { data } = await supabase
         .from('users')
         .select('*')
@@ -77,12 +78,14 @@ export default function SettingsPage() {
 
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
 
-      if (!user) {
+      if (!session?.user) {
         router.push('/login')
         return
       }
+
+      const user = session.user
 
       // Check if username is taken by another user
       const { data: existingUser } = await supabase

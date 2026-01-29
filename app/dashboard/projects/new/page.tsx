@@ -151,6 +151,7 @@ export default function NewProjectPage() {
         thumbnail_url: formData.thumbnail_url.trim() || null,
         tags,
         grant_id: grantId || null,
+        status: 'approved', // Make project immediately public
       }
 
       console.log('Project data:', projectData)

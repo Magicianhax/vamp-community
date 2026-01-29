@@ -32,12 +32,14 @@ export default function EditProjectPage() {
   useEffect(() => {
     const fetchProject = async () => {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
 
-      if (!user) {
+      if (!session?.user) {
         router.push('/login')
         return
       }
+
+      const user = session.user
 
       const { data } = await supabase
         .from('projects')

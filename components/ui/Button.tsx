@@ -18,7 +18,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       primary: 'bg-primary text-white focus:ring-primary border-2 border-gray-900',
       secondary: 'bg-white border-2 border-gray-900 text-text-primary focus:ring-gray-300',
       ghost: 'text-text-secondary focus:ring-gray-300',
-      danger: 'bg-error text-white focus:ring-error border-2 border-gray-900',
+      danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 border-2 border-gray-900',
       accent: 'bg-blue-600 text-white focus:ring-blue-500 border-2 border-gray-900',
     }
 
