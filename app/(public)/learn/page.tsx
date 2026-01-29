@@ -176,12 +176,12 @@ export default async function LearnPage({ searchParams }: LearnPageProps) {
   const currentSection = searchParams.section || 'all'
 
   return (
-    <Container className="py-12">
-      <div className="mb-8">
+    <Container className="py-6 sm:py-12">
+      <div className="mb-6 sm:mb-8">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <Text as="h1" className="text-3xl font-head font-bold">Learn</Text>
-            <p className="text-muted-foreground mt-2">
+            <Text as="h1" className="text-2xl sm:text-3xl font-head font-bold">Learn</Text>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
               Curated resources to level up your vibecoding skills
             </p>
           </div>
@@ -189,8 +189,8 @@ export default async function LearnPage({ searchParams }: LearnPageProps) {
       </div>
 
       {/* Section Navigation Tabs */}
-      <div className="mb-8 border-b-2 border-black">
-        <div className="flex flex-wrap gap-2 -mb-[2px]">
+      <div className="mb-6 sm:mb-8 border-b-2 border-black overflow-x-auto">
+        <div className="flex gap-1 sm:gap-2 -mb-[2px] min-w-max">
           {sections.map((section) => {
             const isActive = currentSection === section.id
             return (
@@ -198,16 +198,17 @@ export default async function LearnPage({ searchParams }: LearnPageProps) {
                 key={section.id}
                 href={buildFilterUrl({ section: section.id === 'all' ? undefined : section.id })}
                 className={`
-                  px-4 py-3 font-head font-medium text-sm border-b-2 transition-colors
-                  ${isActive 
-                    ? 'border-primary text-foreground bg-primary/5' 
+                  px-3 sm:px-4 py-2 sm:py-3 font-head font-medium text-xs sm:text-sm border-b-2 transition-colors whitespace-nowrap
+                  ${isActive
+                    ? 'border-primary text-foreground bg-primary/5'
                     : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }
                 `}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   {section.icon}
-                  <span>{section.label}</span>
+                  <span className="hidden sm:inline">{section.label}</span>
+                  <span className="sm:hidden">{section.label.replace('All Resources', 'All')}</span>
                 </div>
               </Link>
             )
@@ -216,9 +217,9 @@ export default async function LearnPage({ searchParams }: LearnPageProps) {
       </div>
 
       {/* Section-Specific Filters */}
-      <div className="mb-6 space-y-3">
+      <div className="mb-4 sm:mb-6 space-y-2 sm:space-y-3">
         {/* Main Filters Row */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {/* Category - Only show when not in a specific section */}
           {currentSection === 'all' && (
             <div className="flex items-center gap-2">

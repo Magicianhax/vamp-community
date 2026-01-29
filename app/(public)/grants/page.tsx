@@ -24,10 +24,10 @@ export default async function GrantsPage() {
   const pastGrants = grants.filter((g: any) => g.status !== 'active')
 
   return (
-    <Container className="py-12">
-      <div className="mb-8">
-        <Text as="h1" className="text-3xl font-head font-bold">Grants</Text>
-        <p className="text-muted-foreground mt-2">
+    <Container className="py-6 sm:py-12">
+      <div className="mb-6 sm:mb-8">
+        <Text as="h1" className="text-2xl sm:text-3xl font-head font-bold">Grants</Text>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
           Submit your vibecoded projects and compete for rewards
         </p>
       </div>

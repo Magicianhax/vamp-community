@@ -10,16 +10,20 @@ export function GrantsTabs({ activeGrants, pastGrants }: { activeGrants: any[]; 
 
   return (
     <div>
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-4 sm:mb-6">
         <Button
           variant={activeTab === 'active' ? 'default' : 'outline'}
           onClick={() => setActiveTab('active')}
+          size="sm"
+          className="text-xs sm:text-sm"
         >
           Active ({activeGrants.length})
         </Button>
         <Button
           variant={activeTab === 'past' ? 'default' : 'outline'}
           onClick={() => setActiveTab('past')}
+          size="sm"
+          className="text-xs sm:text-sm"
         >
           Past ({pastGrants.length})
         </Button>

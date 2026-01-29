@@ -62,19 +62,19 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const userVote = user ? await getUserVote(user.id, project.id) : null
 
   return (
-    <Container className="py-12">
+    <Container className="py-6 sm:py-12">
       <Link href="/projects">
-        <Button variant="link" size="sm" className="mb-8 flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
+        <Button variant="link" size="sm" className="mb-4 sm:mb-8 flex items-center gap-2 text-xs sm:text-sm">
+          <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
           Back to Projects
         </Button>
       </Link>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2">
           {/* Header */}
-          <div className="flex items-start gap-6 mb-8">
+          <div className="flex items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
             {project.thumbnail_url ? (
               <div className="w-24 h-24 md:w-32 md:h-32 border-2 border-black shadow-md overflow-hidden">
                 <Image

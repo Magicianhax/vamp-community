@@ -210,9 +210,9 @@ export function ProjectComments({ projectId, userId }: ProjectCommentsProps) {
   }
 
   return (
-    <div id="comments" className="mt-10 pt-8 border-t-2 border-black">
-      <Text as="h2" className="text-lg font-head font-semibold flex items-center gap-2 mb-4">
-        <MessageCircle className="w-5 h-5 text-muted-foreground" />
+    <div id="comments" className="mt-6 sm:mt-10 pt-6 sm:pt-8 border-t-2 border-black">
+      <Text as="h2" className="text-base sm:text-lg font-head font-semibold flex items-center gap-2 mb-4">
+        <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
         Comments ({comments.length})
       </Text>
 
@@ -319,10 +319,10 @@ function CommentItem({
 
   return (
     <Card>
-      <Card.Content>
-        <div className="flex gap-3">
+      <Card.Content className="p-3 sm:p-4">
+        <div className="flex gap-2 sm:gap-3">
           <TwitterAvatar
-            className="w-10 h-10"
+            className="w-8 h-8 sm:w-10 sm:h-10"
             src={comment.user?.avatar_url ?? undefined}
             alt={comment.user?.display_name || comment.user?.username || 'User'}
             twitterHandle={comment.user?.twitter_handle ?? undefined}
@@ -331,15 +331,15 @@ function CommentItem({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <Link href={`/u/${comment.user?.username}`}>
-                <Text as="span" className="font-head font-medium">
+                <Text as="span" className="font-head font-medium text-sm sm:text-base">
                   {comment.user?.display_name || comment.user?.username || 'User'}
                 </Text>
               </Link>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[10px] sm:text-xs text-muted-foreground">
                 {formatRelativeTime(comment.created_at)}
               </span>
             </div>
-            <p className="text-muted-foreground text-sm mt-0.5 whitespace-pre-wrap">
+            <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 whitespace-pre-wrap">
               {comment.body}
             </p>
             <div className="flex items-center gap-3 mt-1">

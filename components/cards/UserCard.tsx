@@ -23,18 +23,18 @@ export function UserCard({ user, projectCount = 0, className }: UserCardProps) {
 
   return (
     <Card className={`${className} cursor-pointer`} onClick={handleCardClick}>
-      <Card.Content className="text-center">
+      <Card.Content className="text-center p-4 sm:p-6">
         <TwitterAvatar
-          className="mx-auto w-16 h-16"
+          className="mx-auto w-12 h-12 sm:w-16 sm:h-16"
           src={user.avatar_url}
           alt={user.display_name || user.username}
           twitterHandle={user.twitter_handle}
           userId={user.id}
         />
-        <Text as="h3" className="font-head font-semibold mt-4">
+        <Text as="h3" className="font-head font-semibold mt-3 sm:mt-4 text-sm sm:text-base">
           {user.display_name || user.username}
         </Text>
-        <p className="text-sm text-muted-foreground">@{user.username}</p>
+        <p className="text-xs sm:text-sm text-muted-foreground">@{user.username}</p>
         {user.bio && (
           <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
             {user.bio}

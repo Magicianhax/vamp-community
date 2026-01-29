@@ -6,7 +6,6 @@ import { ExternalLink, BookOpen, Wrench, User, FileText, Video, Sparkles, Tag } 
 import { Badge } from '@/components/retroui/Badge'
 import { Card } from '@/components/retroui/Card'
 import { ResourceVoteButton } from '@/components/ui/ResourceVoteButton'
-import { cn } from '@/lib/utils'
 import type { Resource, ResourceCategory } from '@/types'
 
 export interface ResourceRowProps {
@@ -32,14 +31,14 @@ export function ResourceRow({ resource, rank, userId }: ResourceRowProps) {
 
   const isInternalArticle = resource.url.startsWith('/learn/')
   const tagsDisplay = resource.tags?.length
-    ? resource.tags.slice(0, 3).join(' • ')
+    ? resource.tags.slice(0, 2).join(' • ')
     : null
 
   return (
-    <Card className="flex items-center gap-4 p-4 w-full box-border overflow-hidden">
+    <Card className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 w-full box-border overflow-hidden">
       {/* Rank */}
       {rank != null && (
-        <span className="w-8 flex-shrink-0 text-lg font-head font-bold tabular-nums">
+        <span className="w-5 sm:w-8 flex-shrink-0 text-sm sm:text-lg font-head font-bold tabular-nums text-muted-foreground sm:text-foreground">
           {rank}.
         </span>
       )}
@@ -47,7 +46,7 @@ export function ResourceRow({ resource, rank, userId }: ResourceRowProps) {
       {/* Thumbnail or Icon */}
       <div className="flex-shrink-0">
         {resource.thumbnail_url && !imageError ? (
-          <div className="w-12 h-12 border-2 border-black shadow-md overflow-hidden rounded bg-white flex items-center justify-center p-1">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-black shadow-md overflow-hidden rounded bg-white flex items-center justify-center p-1">
             <Image
               src={resource.thumbnail_url}
               alt={resource.title}
@@ -59,7 +58,7 @@ export function ResourceRow({ resource, rank, userId }: ResourceRowProps) {
             />
           </div>
         ) : (
-          <div className="w-12 h-12 border-2 border-black shadow-md bg-primary flex items-center justify-center">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-black shadow-md bg-primary flex items-center justify-center">
             {categoryIcons[resource.category]}
           </div>
         )}
@@ -71,30 +70,30 @@ export function ResourceRow({ resource, rank, userId }: ResourceRowProps) {
           href={resource.url}
           target={isInternalArticle ? undefined : '_blank'}
           rel={isInternalArticle ? undefined : 'noopener noreferrer'}
-          className="flex items-center gap-2"
+          className="flex items-center gap-1 sm:gap-2"
         >
-          <h3 className="font-head font-semibold line-clamp-1">
+          <h3 className="font-head font-semibold text-sm sm:text-base line-clamp-1">
             {resource.title}
           </h3>
           {!isInternalArticle && (
-            <ExternalLink className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+            <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground flex-shrink-0" />
           )}
         </a>
-        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 line-clamp-1">
           {resource.description}
         </p>
-        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-          <Badge variant={resource.is_featured ? 'surface' : 'default'} size="sm">
+        <div className="flex items-center gap-1.5 sm:gap-2 mt-1 sm:mt-1.5 flex-wrap">
+          <Badge variant={resource.is_featured ? 'surface' : 'default'} size="sm" className="text-[10px] sm:text-xs">
             {resource.category}
           </Badge>
           {resource.ai_tool_type && (
-            <Badge variant="default" size="sm" className="flex items-center gap-1">
+            <Badge variant="default" size="sm" className="hidden sm:flex items-center gap-1 text-[10px] sm:text-xs">
               <Sparkles className="w-3 h-3" />
               AI Tool
             </Badge>
           )}
           {tagsDisplay && (
-            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <span className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
               <Tag className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">{tagsDisplay}</span>
             </span>
@@ -103,7 +102,7 @@ export function ResourceRow({ resource, rank, userId }: ResourceRowProps) {
       </div>
 
       {/* Vote buttons */}
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
         <ResourceVoteButton
           resourceId={resource.id}
           initialUpvotes={resource.upvote_count || 0}

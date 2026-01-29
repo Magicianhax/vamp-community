@@ -112,29 +112,22 @@ export function ProjectVoteButtons({
     }
   }
 
-  const sizeStyles = {
-    sm: 'w-10 h-10 text-xs',
-    md: 'w-12 h-12 text-sm',
-  }
-
-  const iconSize = size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'
-
   return (
-    <div className={cn('flex flex-col items-center gap-1', className)}>
+    <div className={cn('flex flex-col items-center gap-0.5 sm:gap-1', className)}>
       <button
         onClick={() => handleVote('upvote')}
         disabled={isLoading}
         className={cn(
           'flex flex-col items-center justify-center border-2 border-black rounded shadow-md transition-colors',
           'disabled:opacity-50 disabled:cursor-not-allowed',
-          sizeStyles[size],
+          'w-8 h-8 sm:w-10 sm:h-10',
           userVote === 'upvote'
             ? 'bg-primary text-primary-foreground'
             : 'bg-card hover:bg-muted'
         )}
       >
-        <ChevronUp className={iconSize} />
-        <span className="font-head font-semibold tabular-nums text-xs">{upvoteCount}</span>
+        <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4" />
+        <span className="font-head font-semibold tabular-nums text-[10px] sm:text-xs leading-none">{upvoteCount}</span>
       </button>
 
       <button
@@ -143,14 +136,14 @@ export function ProjectVoteButtons({
         className={cn(
           'flex flex-col items-center justify-center border-2 border-black rounded shadow-md transition-colors',
           'disabled:opacity-50 disabled:cursor-not-allowed',
-          sizeStyles[size],
+          'w-8 h-8 sm:w-10 sm:h-10',
           userVote === 'downvote'
             ? 'bg-red-500 text-white'
             : 'bg-card hover:bg-muted'
         )}
       >
-        <ChevronDown className={iconSize} />
-        <span className="font-head font-semibold tabular-nums text-xs">{downvoteCount}</span>
+        <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
+        <span className="font-head font-semibold tabular-nums text-[10px] sm:text-xs leading-none">{downvoteCount}</span>
       </button>
     </div>
   )

@@ -120,18 +120,18 @@ export default function FAQPage() {
   }
 
   return (
-    <Container className="py-12">
+    <Container className="py-6 sm:py-12">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
-          <Text as="h1" className="text-4xl font-head font-bold mb-4">Frequently Asked Questions</Text>
-          <p className="text-muted-foreground text-lg">
+        <div className="text-center mb-8 sm:mb-12">
+          <Text as="h1" className="text-2xl sm:text-4xl font-head font-bold mb-2 sm:mb-4">Frequently Asked Questions</Text>
+          <p className="text-sm sm:text-lg text-muted-foreground">
             Everything you need to know about Vamp, vibecoding, and grants
           </p>
         </div>
 
         {/* FAQ Sections */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {faqSections.map((section, sectionIdx) => {
             const Icon = section.icon
             return (

@@ -54,7 +54,7 @@ export function ResourceVoteButton({
         setIsLoading(false)
         return
       }
-      
+
       console.log('ResourceVoteButton: Voting with user_id:', userId, 'voteType:', voteType, 'currentVote:', userVote)
 
       // If clicking the same vote, remove it
@@ -122,23 +122,24 @@ export function ResourceVoteButton({
   const netScore = upvotes - downvotes
 
   return (
-    <div className={cn('flex flex-col items-center gap-1', className)}>
+    <div className={cn('flex flex-col items-center gap-0.5 sm:gap-1', className)}>
       <button
         onClick={() => handleVote('upvote')}
         disabled={isLoading}
         className={cn(
-          'w-10 h-10 flex items-center justify-center border-2 border-black rounded shadow-md transition-colors',
+          'flex items-center justify-center border-2 border-black rounded shadow-md transition-colors',
           'disabled:opacity-50 disabled:cursor-not-allowed',
-          userVote === 'upvote' 
-            ? 'bg-primary text-primary-foreground' 
+          'w-8 h-8 sm:w-10 sm:h-10',
+          userVote === 'upvote'
+            ? 'bg-primary text-primary-foreground'
             : 'bg-card hover:bg-muted'
         )}
       >
-        <ChevronUp className="w-5 h-5" />
+        <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5" />
       </button>
-      
+
       <span className={cn(
-        'text-sm font-head font-semibold tabular-nums min-w-[2ch] text-center',
+        'text-xs sm:text-sm font-head font-semibold tabular-nums min-w-[2ch] text-center',
         netScore > 0 && 'text-green-600',
         netScore < 0 && 'text-red-600'
       )}>
@@ -149,14 +150,15 @@ export function ResourceVoteButton({
         onClick={() => handleVote('downvote')}
         disabled={isLoading}
         className={cn(
-          'w-10 h-10 flex items-center justify-center border-2 border-black rounded shadow-md transition-colors',
+          'flex items-center justify-center border-2 border-black rounded shadow-md transition-colors',
           'disabled:opacity-50 disabled:cursor-not-allowed',
-          userVote === 'downvote' 
-            ? 'bg-red-500 text-white' 
+          'w-8 h-8 sm:w-10 sm:h-10',
+          userVote === 'downvote'
+            ? 'bg-red-500 text-white'
             : 'bg-card hover:bg-muted'
         )}
       >
-        <ChevronDown className="w-5 h-5" />
+        <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
       </button>
     </div>
   )

@@ -70,10 +70,10 @@ export default async function GrantPage({ params }: GrantPageProps) {
   const imageUrls = (grant as any).image_urls ?? []
 
   return (
-    <Container className="py-12">
+    <Container className="py-6 sm:py-12">
       <Link href="/grants">
-        <Button variant="link" size="sm" className="mb-6 flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
+        <Button variant="link" size="sm" className="mb-4 sm:mb-6 flex items-center gap-2 text-xs sm:text-sm">
+          <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
           Back to Grants
         </Button>
       </Link>

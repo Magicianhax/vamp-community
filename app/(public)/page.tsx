@@ -198,7 +198,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <Container className="py-12">
+      <Container className="py-6 sm:py-12">
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 items-start">
           {/* Main Content */}
           <div className="flex-1 min-w-0 space-y-8 lg:max-w-[calc(100%-20rem)]">

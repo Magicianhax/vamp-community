@@ -76,43 +76,43 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
   }))
 
   return (
-    <Container className="py-12">
+    <Container className="py-6 sm:py-12">
       {/* Header */}
-      <div className="mb-8">
-        <Text as="h1" className="text-3xl font-head font-bold">Top Projects</Text>
-        <p className="text-muted-foreground mt-2">
+      <div className="mb-6 sm:mb-8">
+        <Text as="h1" className="text-2xl sm:text-3xl font-head font-bold">Top Projects</Text>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
           Discover vibecoded projects from the community
         </p>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-4 mb-6">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Sort:</span>
+          <span className="text-xs sm:text-sm text-muted-foreground">Sort:</span>
           <div className="flex gap-1">
             <a href="/projects">
-              <Button variant={!sort || sort === 'popular' ? 'default' : 'outline'} size="sm">
+              <Button variant={!sort || sort === 'popular' ? 'default' : 'outline'} size="sm" className="text-xs sm:text-sm px-2 sm:px-3">
                 Popular
               </Button>
             </a>
             <a href="/projects?sort=newest">
-              <Button variant={sort === 'newest' ? 'default' : 'outline'} size="sm">
+              <Button variant={sort === 'newest' ? 'default' : 'outline'} size="sm" className="text-xs sm:text-sm px-2 sm:px-3">
                 Newest
               </Button>
             </a>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm text-muted-foreground">Tags:</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          <span className="text-xs sm:text-sm text-muted-foreground">Tags:</span>
           <a href="/projects">
-            <Badge variant={!tag ? 'surface' : 'default'} size="sm">
+            <Badge variant={!tag ? 'surface' : 'default'} size="sm" className="text-[10px] sm:text-xs">
               All
             </Badge>
           </a>
           {POPULAR_TAGS.map((t) => (
             <a key={t} href={`/projects?tag=${t}${sort ? `&sort=${sort}` : ''}`}>
-              <Badge variant={tag === t ? 'surface' : 'default'} size="sm">
+              <Badge variant={tag === t ? 'surface' : 'default'} size="sm" className="text-[10px] sm:text-xs">
                 {t}
               </Badge>
             </a>

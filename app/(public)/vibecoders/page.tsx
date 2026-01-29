@@ -43,16 +43,16 @@ export default async function VibecodersPage() {
   const vibecoders = await getVibecoders()
 
   return (
-    <Container className="py-12">
-      <div className="mb-8">
-        <Text as="h1" className="text-3xl font-head font-bold">Vibecoders</Text>
-        <p className="text-muted-foreground mt-2">
+    <Container className="py-6 sm:py-12">
+      <div className="mb-6 sm:mb-8">
+        <Text as="h1" className="text-2xl sm:text-3xl font-head font-bold">Vibecoders</Text>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
           Discover talented builders in the vibecoding community
         </p>
       </div>
 
       {vibecoders.length > 0 ? (
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
           {vibecoders.map((user) => (
             <UserCard
               key={user.id}

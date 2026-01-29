@@ -14,22 +14,22 @@ const CONTRACT_ADDRESS = 'BFuy9AJYKekZ2hik7b5mPhsunGscegi9vPY2bwzzBAGS'
 
 export default function VampTokenPage() {
   return (
-    <Container className="py-12">
+    <Container className="py-6 sm:py-12">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 border-2 border-black shadow-md bg-primary flex items-center justify-center">
-              <Coins className="w-6 h-6 text-primary-foreground" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-black shadow-md bg-primary flex items-center justify-center">
+              <Coins className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
             </div>
             <div>
-              <Text as="h1" className="text-3xl font-head font-bold">$VAMP Token</Text>
-              <p className="text-muted-foreground mt-1">The Vibecoding Community Token</p>
+              <Text as="h1" className="text-2xl sm:text-3xl font-head font-bold">$VAMP Token</Text>
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">The Vibecoding Community Token</p>
             </div>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Fee Tracking */}
