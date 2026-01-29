@@ -85,36 +85,91 @@ export default function NewProjectPage() {
 
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+      if (userError) {
+        console.error('Auth error:', userError)
+        setError(`Authentication error: ${userError.message}`)
+        setIsLoading(false)
+        return
+      }
 
       if (!user) {
+        console.error('No user found')
         router.push('/login')
         return
       }
 
+      // Ensure user exists in users table (in case trigger didn't fire)
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+
+      if (!existingUser) {
+        console.log('User not found in users table, creating...')
+        // Extract username from email or use a default
+        const username = user.email?.split('@')[0] || 
+                        user.user_metadata?.user_name || 
+                        user.user_metadata?.preferred_username ||
+                        `user_${user.id.slice(0, 8)}`
+        
+        const { error: createUserError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            username: username.toLowerCase(),
+            display_name: user.user_metadata?.name || user.user_metadata?.full_name || username,
+            avatar_url: user.user_metadata?.avatar_url || null,
+            twitter_handle: user.user_metadata?.user_name || null,
+          })
+
+        if (createUserError) {
+          console.error('Error creating user:', createUserError)
+          setError(`Failed to create user profile: ${createUserError.message}`)
+          setIsLoading(false)
+          return
+        }
+      }
+
+      console.log('Submitting project with user:', user.id)
+
+      const projectData = {
+        user_id: user.id,
+        title: formData.title.trim(),
+        tagline: formData.tagline.trim(),
+        description: formData.description.trim(),
+        demo_url: formData.demo_url.trim(),
+        github_url: formData.github_url.trim(),
+        thumbnail_url: formData.thumbnail_url.trim() || null,
+        tags,
+        grant_id: grantId || null,
+      }
+
+      console.log('Project data:', projectData)
+
       const { data, error: insertError } = await supabase
         .from('projects')
-        .insert({
-          user_id: user.id,
-          title: formData.title.trim(),
-          tagline: formData.tagline.trim(),
-          description: formData.description.trim(),
-          demo_url: formData.demo_url.trim(),
-          github_url: formData.github_url.trim(),
-          thumbnail_url: formData.thumbnail_url.trim() || null,
-          tags,
-          grant_id: grantId || null,
-        })
+        .insert(projectData)
         .select()
         .single()
 
       if (insertError) {
-        setError(insertError.message)
+        console.error('Insert error:', insertError)
+        setError(insertError.message || 'Failed to submit project. Please check your connection and try again.')
+      } else if (data) {
+        console.log('Project created successfully:', data)
+        router.push('/dashboard/projects')
       } else {
+        console.error('No data returned from insert')
+        setError('Project submitted but no confirmation received. Please check your projects list.')
         router.push('/dashboard/projects')
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      console.error('Unexpected error:', err)
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
