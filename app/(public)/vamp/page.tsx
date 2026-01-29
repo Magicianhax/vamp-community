@@ -8,6 +8,7 @@ import { Text } from '@/components/retroui/Text'
 import { Badge } from '@/components/retroui/Badge'
 import { Button } from '@/components/retroui/Button'
 import { ExternalLink, Copy, CheckCircle2, Coins, Users, DollarSign } from 'lucide-react'
+import { FeeTracker } from '@/components/token/FeeTracker'
 
 const CONTRACT_ADDRESS = 'BFuy9AJYKekZ2hik7b5mPhsunGscegi9vPY2bwzzBAGS'
 
@@ -31,6 +32,9 @@ export default function VampTokenPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Fee Tracking */}
+            <FeeTracker />
+
             {/* Chart */}
             <Card>
               <Card.Header>
