@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   PenLine,
   Gift,
+  Bell,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +31,7 @@ const icons = {
   FileCheck,
   PenLine,
   Gift,
+  Bell,
 }
 
 export interface SidebarLink {

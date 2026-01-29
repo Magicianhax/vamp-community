@@ -23,6 +23,7 @@ export const NAV_LINKS = [
 
 export const DASHBOARD_NAV_LINKS = [
   { href: '/dashboard', label: 'Overview', icon: 'LayoutDashboard' },
+  { href: '/dashboard/notifications', label: 'Notifications', icon: 'Bell' },
   { href: '/dashboard/projects', label: 'My Projects', icon: 'Folder' },
   { href: '/dashboard/projects/new', label: 'Submit Project', icon: 'Plus' },
   { href: '/dashboard/resources', label: 'My Resources', icon: 'BookOpen' },

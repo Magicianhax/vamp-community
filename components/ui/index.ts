@@ -50,6 +50,8 @@ export type { DeleteProjectButtonProps } from './DeleteProjectButton'
 export { TweetEmbed } from './TweetEmbed'
 export type { TweetEmbedProps } from './TweetEmbed'
 
+export { NotificationBell } from './NotificationBell'
+
 // Legacy components
 export { Modal, ConfirmModal } from './Modal'
 export type { ModalProps, ConfirmModalProps } from './Modal'

@@ -10,7 +10,7 @@ import { Button } from '@/components/retroui/Button'
 import { Input } from '@/components/retroui/Input'
 import { TwitterAvatar } from '@/components/ui/TwitterAvatar'
 import { Card } from '@/components/retroui/Card'
-import { SignInModal, SearchModal } from '@/components/ui'
+import { SignInModal, SearchModal, NotificationBell } from '@/components/ui'
 import { NAV_LINKS } from '@/lib/constants'
 import { createClient } from '@/lib/supabase/client'
 import type { User as UserType } from '@/types'
@@ -287,14 +287,16 @@ export function Header() {
               {isLoading ? (
                 <div className="w-9 h-9 bg-muted rounded animate-pulse" />
               ) : user ? (
-                <div className="relative">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    aria-label="User menu"
-                  >
-                    <TwitterAvatar
+                <div className="flex items-center gap-2">
+                  <NotificationBell userId={user.id} />
+                  <div className="relative">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsProfileOpen(!isProfileOpen)}
+                      aria-label="User menu"
+                    >
+                      <TwitterAvatar
                       className="w-9 h-9"
                       src={user.avatar_url}
                       alt={user.display_name || user.username}
@@ -366,6 +368,7 @@ export function Header() {
                       </Card>
                     </>
                   )}
+                  </div>
                 </div>
               ) : (
                 <Button

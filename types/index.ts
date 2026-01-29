@@ -16,6 +16,20 @@ export type ResourceStatus = 'pending' | 'approved' | 'rejected' | 'featured'
 
 export type SubmissionStatus = 'submitted' | 'under_review' | 'winner' | 'rejected'
 
+export type NotificationType = 'comment_reply' | 'project_comment' | 'grant_comment' | 'grant_submission' | 'project_approved' | 'grant_winner'
+
+export interface Notification {
+  id: string
+  user_id: string
+  type: NotificationType
+  title: string
+  message: string
+  link: string | null
+  is_read: boolean
+  metadata: Record<string, any>
+  created_at: string
+}
+
 export interface User {
   id: string
   email: string
