@@ -128,7 +128,7 @@ export default async function LearnArticlePage({ params }: LearnArticlePageProps
               <div className="flex flex-wrap items-center gap-2">
                 {article.tags && article.tags.length > 0 && (
                   <>
-                    {article.tags.map((tag, index) => (
+                    {article.tags.map((tag: string, index: number) => (
                       <span
                         key={index}
                         className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded"
