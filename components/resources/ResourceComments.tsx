@@ -17,7 +17,7 @@ export interface ResourceCommentsProps {
   userId: string | null
 }
 
-interface CommentWithUser extends Comment {
+interface CommentWithUser extends Omit<Comment, 'user'> {
   user?: { id: string; username: string; display_name: string | null; avatar_url: string | null; twitter_handle: string | null }
 }
 

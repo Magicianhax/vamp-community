@@ -1,6 +1,6 @@
-// RetroUI components (primary)
-export { Button } from '@/components/retroui/Button'
-export type { IButtonProps as ButtonProps } from '@/components/retroui/Button'
+// Button with isLoading support
+export { Button } from './Button'
+export type { ButtonProps } from './Button'
 
 // Form Input with label support (used in forms)
 export { Input, Textarea, Select } from './Input'
@@ -11,7 +11,8 @@ export { Input as BasicInput } from '@/components/retroui/Input'
 
 export { Badge } from '@/components/retroui/Badge'
 
-export { Avatar } from '@/components/retroui/Avatar'
+export { Avatar } from './Avatar'
+export type { AvatarProps } from './Avatar'
 
 export { Card } from '@/components/retroui/Card'
 

@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { Search, X, FolderOpen, Trophy, Loader2, User, BookOpen, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/retroui/Card'
-import { Input } from '@/components/retroui/Input'
 import { Text } from '@/components/retroui/Text'
 import { cn } from '@/lib/utils'
 
@@ -170,13 +169,13 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input
+              <input
                 ref={inputRef}
                 type="text"
                 placeholder="Search projects, users, AI tools, learn..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="pl-10 text-base"
+                className="pl-10 text-base w-full px-4 py-2 border-2 border-black rounded shadow-md focus:outline-none focus:shadow-xs"
               />
             </div>
             <button
