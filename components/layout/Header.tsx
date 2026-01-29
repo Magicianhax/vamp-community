@@ -38,17 +38,19 @@ export function Header() {
 
         const getUser = async () => {
           try {
-            console.log('Header: Getting user...')
-            const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
-            
-            if (authError) {
-              console.error('Header: Auth error:', authError)
+            console.log('Header: Getting session...')
+            // Use getSession() first - it's faster and reads from local storage
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+            if (sessionError) {
+              console.error('Header: Session error:', sessionError)
               if (mounted) setIsLoading(false)
               return
             }
 
+            const authUser = session?.user
             if (authUser) {
-              console.log('Header: User found, fetching profile...', authUser.id)
+              console.log('Header: Session found, fetching profile...', authUser.id)
               let { data, error: profileError } = await supabase
                 .from('users')
                 .select('*')
@@ -94,7 +96,7 @@ export function Header() {
 
               if (mounted) setUser(data)
             } else {
-              console.log('Header: No user found')
+              console.log('Header: No session found')
             }
           } catch (err) {
             console.error('Header: Error in getUser:', err)
