@@ -41,6 +41,9 @@ export type { TwitterAvatarProps } from './TwitterAvatar'
 
 export { Markdown } from './Markdown'
 
+export { ImageUpload, ArticleImageUpload, IMAGE_SIZES } from './ImageUpload'
+export type { ImageUploadProps, ArticleImageUploadProps, ImageSize, ImageSizeConfig } from './ImageUpload'
+
 // Legacy components
 export { Modal, ConfirmModal } from './Modal'
 export type { ModalProps, ConfirmModalProps } from './Modal'

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import { Button, Input, Badge } from '@/components/ui'
+import { Button, Input, Badge, ImageUpload } from '@/components/ui'
 
 const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false })
 import { createClient } from '@/lib/supabase/client'
@@ -261,14 +261,13 @@ export default function NewProjectPage() {
           required
         />
 
-        <Input
-          label="Thumbnail URL (Optional)"
-          name="thumbnail_url"
-          type="url"
-          placeholder="https://example.com/thumbnail.png"
+        <ImageUpload
+          label="Project Logo (Optional)"
           value={formData.thumbnail_url}
-          onChange={handleChange}
-          hint="A square image for your project card"
+          onChange={(url) => setFormData((prev) => ({ ...prev, thumbnail_url: url || '' }))}
+          size="square"
+          folder="projects"
+          hint="A square image for your project card. Max 5MB."
         />
 
         {/* Tags */}

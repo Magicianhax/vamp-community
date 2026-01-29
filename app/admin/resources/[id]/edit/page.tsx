@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { Button, Input, Textarea, Select } from '@/components/ui'
+import { Button, Input, Textarea, Select, ImageUpload } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
 import { RESOURCE_CATEGORIES, AI_TOOL_TYPES, RESOURCE_PRICING, RESOURCE_DIFFICULTY } from '@/lib/constants'
 import type { ResourceCategory, AIToolType, ResourcePricing, ResourceDifficulty } from '@/types'
@@ -186,12 +186,13 @@ export default function EditResourcePage() {
           }))}
         />
 
-        <Input
-          label="Thumbnail URL (Optional)"
-          name="thumbnail_url"
-          type="url"
+        <ImageUpload
+          label="Featured Image (Optional)"
           value={formData.thumbnail_url}
-          onChange={handleChange}
+          onChange={(url) => setFormData((prev) => ({ ...prev, thumbnail_url: url || '' }))}
+          size="featured"
+          folder="resources"
+          hint="Recommended: 1200x630 for social sharing. Max 5MB."
         />
 
         <Input

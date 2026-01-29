@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, X, Trash2 } from 'lucide-react'
-import { Button, Input, Textarea, Badge, ConfirmModal } from '@/components/ui'
+import { Button, Input, Textarea, Badge, ConfirmModal, ImageUpload } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
 import { POPULAR_TAGS } from '@/lib/constants'
 
@@ -238,12 +238,13 @@ export default function EditProjectPage() {
           required
         />
 
-        <Input
-          label="Thumbnail URL (Optional)"
-          name="thumbnail_url"
-          type="url"
+        <ImageUpload
+          label="Project Logo (Optional)"
           value={formData.thumbnail_url}
-          onChange={handleChange}
+          onChange={(url) => setFormData((prev) => ({ ...prev, thumbnail_url: url || '' }))}
+          size="square"
+          folder="projects"
+          hint="A square image for your project card. Max 5MB."
         />
 
         {/* Tags */}
