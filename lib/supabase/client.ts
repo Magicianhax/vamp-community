@@ -9,7 +9,7 @@ export function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // Validate environment variables
+  // Validate environment variables - TypeScript requires non-null assertion
   if (!supabaseUrl || !supabaseAnonKey) {
     const errorMsg = 'Missing Supabase environment variables. Please check your Vercel environment variables.'
     console.error(errorMsg, {
@@ -18,19 +18,19 @@ export function createClient() {
       urlLength: supabaseUrl?.length || 0,
       keyLength: supabaseAnonKey?.length || 0,
     })
-    // Don't throw - return a client that will fail gracefully
-    // This allows the app to load and show proper error messages
+    // Throw error in production to fail fast
+    throw new Error(errorMsg)
   }
 
   // Create a singleton client instance
   if (typeof window === 'undefined') {
     // Server-side: return a basic client (shouldn't happen in client components)
-    return createBrowserClient(supabaseUrl, supabaseAnonKey)
+    return createBrowserClient(supabaseUrl!, supabaseAnonKey!)
   }
 
   if (!client) {
     try {
-      client = createBrowserClient(supabaseUrl, supabaseAnonKey)
+      client = createBrowserClient(supabaseUrl!, supabaseAnonKey!)
       
       // Ensure session is refreshed on client creation
       // This is important for serverless environments where cookies need to be read
