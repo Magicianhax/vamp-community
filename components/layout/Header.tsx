@@ -29,39 +29,80 @@ export function Header() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const supabase = createClient()
+    let mounted = true
 
-    const getUser = async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser()
+    const loadUser = async () => {
+      try {
+        const supabase = createClient()
+        console.log('Header: Creating Supabase client')
 
-      if (authUser) {
-        const { data } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', authUser.id)
-          .single()
+        const getUser = async () => {
+          try {
+            console.log('Header: Getting user...')
+            const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+            
+            if (authError) {
+              console.error('Header: Auth error:', authError)
+              if (mounted) setIsLoading(false)
+              return
+            }
 
-        setUser(data)
+            if (authUser) {
+              console.log('Header: User found, fetching profile...', authUser.id)
+              const { data, error: profileError } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', authUser.id)
+                .single()
+
+              if (profileError) {
+                console.error('Header: Profile error:', profileError)
+              } else {
+                console.log('Header: Profile loaded:', data?.username)
+              }
+
+              if (mounted) setUser(data)
+            } else {
+              console.log('Header: No user found')
+            }
+          } catch (err) {
+            console.error('Header: Error in getUser:', err)
+          } finally {
+            if (mounted) setIsLoading(false)
+          }
+        }
+
+        await getUser()
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
+          console.log('Header: Auth state changed:', event)
+          if (event === 'SIGNED_IN' && session?.user) {
+            const { data } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', session.user.id)
+              .single()
+            if (mounted) setUser(data)
+          } else if (event === 'SIGNED_OUT') {
+            if (mounted) setUser(null)
+          }
+        })
+
+        return () => {
+          mounted = false
+          subscription.unsubscribe()
+        }
+      } catch (error) {
+        console.error('Header: Error initializing:', error)
+        if (mounted) setIsLoading(false)
       }
-      setIsLoading(false)
     }
 
-    getUser()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const { data } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-        setUser(data)
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null)
-      }
-    })
-
-    return () => subscription.unsubscribe()
+    const cleanup = loadUser()
+    return () => {
+      mounted = false
+      cleanup.then(cleanupFn => cleanupFn?.())
+    }
   }, [])
 
   // Handle hover menu with delay to prevent closing when moving to submenu

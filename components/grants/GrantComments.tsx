@@ -32,7 +32,10 @@ export function GrantComments({ grantId, userId }: GrantCommentsProps) {
 
   const fetchComments = async () => {
     try {
+      console.log('GrantComments: Fetching comments for grant:', grantId)
       const supabase = createClient()
+      console.log('GrantComments: Supabase client created')
+      
       const { data, error: fetchError } = await supabase
         .from('comments')
         .select('*, user:users(id, username, display_name, avatar_url, twitter_handle)')
@@ -40,14 +43,15 @@ export function GrantComments({ grantId, userId }: GrantCommentsProps) {
         .order('created_at', { ascending: true })
 
       if (fetchError) {
-        console.error('Error fetching comments:', fetchError)
+        console.error('GrantComments: Error fetching comments:', fetchError)
         setError('Failed to load comments')
       } else {
+        console.log('GrantComments: Comments loaded:', data?.length || 0)
         setComments((data as CommentWithUser[]) || [])
         setError(null)
       }
     } catch (err) {
-      console.error('Unexpected error fetching comments:', err)
+      console.error('GrantComments: Unexpected error fetching comments:', err)
       setError('Failed to load comments')
     } finally {
       setLoading(false)
