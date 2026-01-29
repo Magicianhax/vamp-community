@@ -1,25 +1,27 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { Button, Input, Textarea, Select, ImageUpload } from '@/components/ui'
+import { Button, Input, Textarea, Select, Badge, ImageUpload } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
-import { RESOURCE_CATEGORIES, AI_TOOL_TYPES, RESOURCE_PRICING, RESOURCE_DIFFICULTY } from '@/lib/constants'
+import { RESOURCE_CATEGORIES, AI_TOOL_TYPES, RESOURCE_PRICING, RESOURCE_DIFFICULTY, RESOURCE_STATUS_LABELS } from '@/lib/constants'
 import type { ResourceCategory, AIToolType, ResourcePricing, ResourceDifficulty, ResourceStatus } from '@/types'
 
-export default function NewResourcePage() {
+export default function EditResourcePage() {
   const router = useRouter()
+  const params = useParams()
+  const resourceId = params.id as string
 
+  const [userId, setUserId] = useState<string | null>(null)
+  const [status, setStatus] = useState<ResourceStatus>('pending')
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     url: '',
     category: 'tutorial' as ResourceCategory,
     thumbnail_url: '',
-    is_featured: false,
-    status: 'approved' as ResourceStatus,
     tags: '' as string,
     ai_tool_type: '' as AIToolType | '',
     pricing: '' as ResourcePricing | '',
@@ -27,22 +29,67 @@ export default function NewResourcePage() {
   })
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [isFetching, setIsFetching] = useState(true)
+
+  useEffect(() => {
+    const fetchResource = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      setUserId(user.id)
+
+      const { data } = await supabase
+        .from('resources')
+        .select('*')
+        .eq('id', resourceId)
+        .single()
+
+      if (!data) {
+        router.push('/dashboard/resources')
+        return
+      }
+
+      // Verify ownership
+      if (data.user_id !== user.id) {
+        router.push('/dashboard/resources')
+        return
+      }
+
+      setStatus(data.status)
+      setFormData({
+        title: data.title,
+        description: data.description,
+        url: data.url,
+        category: data.category,
+        thumbnail_url: data.thumbnail_url || '',
+        tags: (data.tags || []).join(', '),
+        ai_tool_type: data.ai_tool_type || '',
+        pricing: data.pricing || '',
+        difficulty: data.difficulty || '',
+      })
+      setIsFetching(false)
+    }
+
+    fetchResource()
+  }, [resourceId, router])
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const value = e.target.type === 'checkbox'
-      ? (e.target as HTMLInputElement).checked
-      : e.target.value
-    setFormData((prev) => ({ ...prev, [e.target.name]: value }))
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    if (!formData.title || !formData.description || !formData.url) {
-      setError('Please fill in all required fields')
+    if (!userId) {
+      setError('Please sign in to edit this resource')
       return
     }
 
@@ -57,26 +104,25 @@ export default function NewResourcePage() {
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0)
 
-      const { error: insertError } = await supabase
+      const { error: updateError } = await supabase
         .from('resources')
-        .insert({
+        .update({
           title: formData.title.trim(),
           description: formData.description.trim(),
           url: formData.url.trim(),
           category: formData.category,
           thumbnail_url: formData.thumbnail_url.trim() || null,
-          is_featured: formData.is_featured,
-          status: formData.status,
           tags: tags.length > 0 ? tags : [],
           ai_tool_type: formData.ai_tool_type || null,
           pricing: formData.pricing || null,
           difficulty: formData.difficulty || null,
         })
+        .eq('id', resourceId)
 
-      if (insertError) {
-        setError(insertError.message)
+      if (updateError) {
+        setError(updateError.message)
       } else {
-        router.push('/admin/resources')
+        router.push('/dashboard/resources')
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -85,21 +131,41 @@ export default function NewResourcePage() {
     }
   }
 
+  if (isFetching) {
+    return (
+      <div className="max-w-2xl animate-pulse">
+        <div className="h-8 w-32 bg-muted rounded mb-6" />
+        <div className="h-10 w-64 bg-muted rounded mb-8" />
+        <div className="space-y-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-12 bg-muted rounded" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-2xl">
       <Link
-        href="/admin/resources"
+        href="/dashboard/resources"
         className="inline-flex items-center gap-2 text-text-secondary mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Resources
+        Back to My Resources
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-text-primary">Add New Resource</h1>
-        <p className="text-text-secondary mt-1">
-          Add a learning resource for the community
-        </p>
+        <div className="flex items-center gap-3 mb-1">
+          <h1 className="text-2xl font-bold text-text-primary">Edit Resource</h1>
+          <Badge
+            size="sm"
+            variant={status === 'approved' || status === 'featured' ? 'accent' : 'default'}
+          >
+            {RESOURCE_STATUS_LABELS[status]}
+          </Badge>
+        </div>
+        <p className="text-text-secondary">Update your resource details</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -112,7 +178,6 @@ export default function NewResourcePage() {
         <Input
           label="Title"
           name="title"
-          placeholder="Getting Started with Vibecoding"
           value={formData.title}
           onChange={handleChange}
           required
@@ -121,7 +186,6 @@ export default function NewResourcePage() {
         <Textarea
           label="Description"
           name="description"
-          placeholder="Describe what this resource covers..."
           value={formData.description}
           onChange={handleChange}
           rows={3}
@@ -132,7 +196,6 @@ export default function NewResourcePage() {
           label="URL"
           name="url"
           type="url"
-          placeholder="https://example.com/resource"
           value={formData.url}
           onChange={handleChange}
           required
@@ -208,35 +271,11 @@ export default function NewResourcePage() {
           ]}
         />
 
-        <Select
-          label="Status"
-          name="status"
-          value={formData.status}
-          onChange={handleChange}
-          options={[
-            { value: 'pending', label: 'Pending Review' },
-            { value: 'approved', label: 'Approved' },
-            { value: 'rejected', label: 'Rejected' },
-            { value: 'featured', label: 'Featured' },
-          ]}
-        />
-
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            name="is_featured"
-            checked={formData.is_featured}
-            onChange={handleChange}
-            className="w-4 h-4 rounded border-border bg-surface text-primary focus:ring-primary"
-          />
-          <span className="text-sm text-text-primary">Feature this resource</span>
-        </label>
-
         <div className="flex gap-3 pt-4">
           <Button type="submit" isLoading={isLoading}>
-            Add Resource
+            Save Changes
           </Button>
-          <Link href="/admin/resources">
+          <Link href="/dashboard/resources">
             <Button type="button" variant="secondary">
               Cancel
             </Button>

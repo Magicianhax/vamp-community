@@ -197,30 +197,40 @@ export function FeeTracker() {
                 .map((stat, index) => (
                   <div
                     key={stat.wallet}
-                    className="flex items-center justify-between p-2 border-2 border-black rounded shadow-sm bg-card"
+                    className="flex flex-col p-3 border-2 border-black rounded shadow-sm bg-card"
                   >
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className="text-xs font-head font-medium text-muted-foreground w-4">
-                        {index + 1}.
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <Text as="p" className="text-sm font-head font-medium truncate">
-                          {stat.username || stat.wallet.slice(0, 8) + '...'}
-                        </Text>
-                        {stat.isCreator && (
-                          <Badge variant="surface" size="sm" className="mt-0.5">
-                            Creator
-                          </Badge>
-                        )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-head font-medium text-muted-foreground w-4">
+                          {index + 1}.
+                        </span>
+                        <div>
+                          <Text as="p" className="text-sm font-head font-medium">
+                            {stat.username || 'Unknown'}
+                          </Text>
+                          {stat.isCreator && (
+                            <Badge variant="surface" size="sm" className="mt-0.5">
+                              Creator
+                            </Badge>
+                          )}
+                        </div>
                       </div>
+                      <Text as="p" className="text-sm font-head font-semibold">
+                        {stat.totalClaimed.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 4,
+                        })}{' '}
+                        SOL
+                      </Text>
                     </div>
-                    <Text as="p" className="text-sm font-head font-semibold ml-2">
-                      {stat.totalClaimed.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 4,
-                      })}{' '}
-                      SOL
-                    </Text>
+                    <a
+                      href={`https://solscan.io/account/${stat.wallet}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 text-xs font-mono text-primary hover:underline break-all"
+                    >
+                      {stat.wallet}
+                    </a>
                   </div>
                 ))}
             </div>

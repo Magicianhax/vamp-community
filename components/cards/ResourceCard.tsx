@@ -1,16 +1,21 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useState } from 'react'
-import { ExternalLink, BookOpen, Wrench, User, FileText, Video, Sparkles, DollarSign, TrendingUp } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ExternalLink, BookOpen, Wrench, User, FileText, Video, Sparkles, DollarSign, TrendingUp, Trash2, Edit } from 'lucide-react'
 import { Card } from '@/components/retroui/Card'
 import { Badge } from '@/components/retroui/Badge'
 import { Text } from '@/components/retroui/Text'
+import { Button } from '@/components/retroui/Button'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import type { Resource, ResourceCategory } from '@/types'
 
 export interface ResourceCardProps {
   resource: Resource
+  userId?: string | null
   className?: string
 }
 
@@ -22,12 +27,47 @@ const categoryIcons: Record<ResourceCategory, React.ReactNode> = {
   video: <Video className="w-5 h-5" />,
 }
 
-export function ResourceCard({ resource, className }: ResourceCardProps) {
+export function ResourceCard({ resource, userId, className }: ResourceCardProps) {
   const [imageError, setImageError] = useState(false)
-  
+  const [deleting, setDeleting] = useState(false)
+  const router = useRouter()
+
   // Check if it's an internal article (starts with /learn/)
   const isInternalArticle = resource.url.startsWith('/learn/')
-  
+
+  // Check if current user owns this resource
+  const isOwner = userId && resource.user_id === userId
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!confirm(`Are you sure you want to delete "${resource.title}"? This action cannot be undone.`)) {
+      return
+    }
+
+    setDeleting(true)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('resources')
+        .delete()
+        .eq('id', resource.id)
+
+      if (error) {
+        console.error('Error deleting resource:', error)
+        alert('Failed to delete resource. Please try again.')
+      } else {
+        router.refresh()
+      }
+    } catch (err) {
+      console.error('Unexpected error deleting resource:', err)
+      alert('An unexpected error occurred. Please try again.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <a
       href={resource.url}
@@ -63,9 +103,33 @@ export function ResourceCard({ resource, className }: ResourceCardProps) {
                 <Text as="h3" className="line-clamp-1">
                   {resource.title}
                 </Text>
-                {!isInternalArticle && (
-                  <ExternalLink className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                )}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {!isInternalArticle && (
+                    <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                  )}
+                  {isOwner && (
+                    <>
+                      <Link
+                        href={`/dashboard/resources/${resource.id}/edit`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Button variant="ghost" size="icon" title="Edit Resource" className="h-7 w-7">
+                          <Edit className="w-3.5 h-3.5" />
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleDelete}
+                        disabled={deleting}
+                        title="Delete Resource"
+                        className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
 
               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">

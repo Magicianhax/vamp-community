@@ -25,6 +25,8 @@ export const DASHBOARD_NAV_LINKS = [
   { href: '/dashboard', label: 'Overview', icon: 'LayoutDashboard' },
   { href: '/dashboard/projects', label: 'My Projects', icon: 'Folder' },
   { href: '/dashboard/projects/new', label: 'Submit Project', icon: 'Plus' },
+  { href: '/dashboard/resources', label: 'My Resources', icon: 'BookOpen' },
+  { href: '/dashboard/resources/new', label: 'Submit Resource', icon: 'PenLine' },
   { href: '/dashboard/submissions', label: 'Submissions', icon: 'Send' },
   { href: '/dashboard/settings', label: 'Settings', icon: 'Settings' },
 ] as const
@@ -97,6 +99,20 @@ export const RESOURCE_DIFFICULTY = [
   { value: 'intermediate', label: 'Intermediate' },
   { value: 'advanced', label: 'Advanced' },
 ] as const
+
+export const RESOURCE_STATUS_LABELS = {
+  pending: 'Pending Review',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  featured: 'Featured',
+} as const
+
+export const RESOURCE_STATUS_COLORS = {
+  pending: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
+  approved: 'bg-green-500/10 text-green-500 border-green-500/20',
+  rejected: 'bg-red-500/10 text-red-500 border-red-500/20',
+  featured: 'bg-accent/10 text-accent border-accent/20',
+} as const
 
 export const SUBMISSION_STATUS_LABELS = {
   submitted: 'Submitted',

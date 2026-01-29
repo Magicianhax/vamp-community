@@ -3,11 +3,14 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
-import { ExternalLink, FileText, TrendingUp, Sparkles, DollarSign } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ExternalLink, FileText, TrendingUp, Sparkles, DollarSign, Trash2, Edit } from 'lucide-react'
 import { Card } from '@/components/retroui/Card'
 import { Badge } from '@/components/retroui/Badge'
 import { Text } from '@/components/retroui/Text'
+import { Button } from '@/components/retroui/Button'
 import { ResourceVoteButton } from '@/components/ui/ResourceVoteButton'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import type { Resource } from '@/types'
 
@@ -23,9 +26,41 @@ export interface GuideArticleCardProps {
 
 export function GuideArticleCard({ resource, userId, className }: GuideArticleCardProps) {
   const [imageError, setImageError] = useState(false)
-  
+  const [deleting, setDeleting] = useState(false)
+  const router = useRouter()
+
   // Check if it's an internal article (starts with /learn/)
   const isInternalArticle = resource.url.startsWith('/learn/')
+
+  // Check if current user owns this resource
+  const isOwner = userId && resource.user_id === userId
+
+  const handleDelete = async () => {
+    if (!confirm(`Are you sure you want to delete "${resource.title}"? This action cannot be undone.`)) {
+      return
+    }
+
+    setDeleting(true)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('resources')
+        .delete()
+        .eq('id', resource.id)
+
+      if (error) {
+        console.error('Error deleting resource:', error)
+        alert('Failed to delete resource. Please try again.')
+      } else {
+        router.refresh()
+      }
+    } catch (err) {
+      console.error('Unexpected error deleting resource:', err)
+      alert('An unexpected error occurred. Please try again.')
+    } finally {
+      setDeleting(false)
+    }
+  }
   
   // Extract short description (before --- separator if exists)
   const shortDescription = resource.description.split('\n\n---\n\n')[0]
@@ -69,7 +104,7 @@ export function GuideArticleCard({ resource, userId, className }: GuideArticleCa
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-4 mb-2">
-              <Link 
+              <Link
                 href={resource.url}
                 className="flex-1 min-w-0"
                 target={isInternalArticle ? undefined : '_blank'}
@@ -79,9 +114,30 @@ export function GuideArticleCard({ resource, userId, className }: GuideArticleCa
                   {resource.title}
                 </Text>
               </Link>
-              {!isInternalArticle && (
-                <ExternalLink className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-1" />
-              )}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {!isInternalArticle && (
+                  <ExternalLink className="w-5 h-5 text-muted-foreground mt-1" />
+                )}
+                {isOwner && (
+                  <>
+                    <Link href={`/dashboard/resources/${resource.id}/edit`}>
+                      <Button variant="ghost" size="icon" title="Edit Resource">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      title="Delete Resource"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
 
             <p className="text-muted-foreground mb-4 line-clamp-3">

@@ -13,6 +13,7 @@ import {
   BookOpen,
   FileCheck,
   ChevronLeft,
+  PenLine,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -26,6 +27,7 @@ const icons = {
   Trophy,
   BookOpen,
   FileCheck,
+  PenLine,
 }
 
 export interface SidebarLink {

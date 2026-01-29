@@ -12,6 +12,8 @@ export type ResourcePricing = 'free' | 'freemium' | 'paid' | 'open-source'
 
 export type ResourceDifficulty = 'beginner' | 'intermediate' | 'advanced'
 
+export type ResourceStatus = 'pending' | 'approved' | 'rejected' | 'featured'
+
 export type SubmissionStatus = 'submitted' | 'under_review' | 'winner' | 'rejected'
 
 export interface User {
@@ -99,18 +101,22 @@ export interface Comment {
 
 export interface Resource {
   id: string
+  user_id: string | null
   title: string
   description: string
   url: string
   category: ResourceCategory
   thumbnail_url: string | null
   is_featured: boolean
+  status: ResourceStatus
   tags: string[]
   ai_tool_type: AIToolType | null
   pricing: ResourcePricing | null
   difficulty: ResourceDifficulty | null
   created_at: string
   updated_at: string
+  // Joined fields
+  user?: User
 }
 
 export interface GrantSubmission {
@@ -159,7 +165,8 @@ export interface ResourceFormData {
   url: string
   category: ResourceCategory
   thumbnail_url?: string
-  is_featured: boolean
+  is_featured?: boolean
+  status?: ResourceStatus
   tags: string[]
   ai_tool_type?: AIToolType | null
   pricing?: ResourcePricing | null

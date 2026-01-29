@@ -1,16 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Button, Input, Textarea, Select, ImageUpload } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
 import { RESOURCE_CATEGORIES, AI_TOOL_TYPES, RESOURCE_PRICING, RESOURCE_DIFFICULTY } from '@/lib/constants'
-import type { ResourceCategory, AIToolType, ResourcePricing, ResourceDifficulty, ResourceStatus } from '@/types'
+import type { ResourceCategory, AIToolType, ResourcePricing, ResourceDifficulty } from '@/types'
 
 export default function NewResourcePage() {
   const router = useRouter()
+  const [userId, setUserId] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     title: '',
@@ -18,8 +19,6 @@ export default function NewResourcePage() {
     url: '',
     category: 'tutorial' as ResourceCategory,
     thumbnail_url: '',
-    is_featured: false,
-    status: 'approved' as ResourceStatus,
     tags: '' as string,
     ai_tool_type: '' as AIToolType | '',
     pricing: '' as ResourcePricing | '',
@@ -28,18 +27,36 @@ export default function NewResourcePage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.push('/login')
+        return
+      }
+
+      setUserId(user.id)
+    }
+
+    checkAuth()
+  }, [router])
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const value = e.target.type === 'checkbox'
-      ? (e.target as HTMLInputElement).checked
-      : e.target.value
-    setFormData((prev) => ({ ...prev, [e.target.name]: value }))
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!userId) {
+      setError('Please sign in to submit a resource')
+      return
+    }
 
     if (!formData.title || !formData.description || !formData.url) {
       setError('Please fill in all required fields')
@@ -60,13 +77,14 @@ export default function NewResourcePage() {
       const { error: insertError } = await supabase
         .from('resources')
         .insert({
+          user_id: userId,
           title: formData.title.trim(),
           description: formData.description.trim(),
           url: formData.url.trim(),
           category: formData.category,
           thumbnail_url: formData.thumbnail_url.trim() || null,
-          is_featured: formData.is_featured,
-          status: formData.status,
+          is_featured: false,
+          status: 'pending',
           tags: tags.length > 0 ? tags : [],
           ai_tool_type: formData.ai_tool_type || null,
           pricing: formData.pricing || null,
@@ -76,7 +94,7 @@ export default function NewResourcePage() {
       if (insertError) {
         setError(insertError.message)
       } else {
-        router.push('/admin/resources')
+        router.push('/dashboard/resources')
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -85,20 +103,33 @@ export default function NewResourcePage() {
     }
   }
 
+  if (!userId) {
+    return (
+      <div className="max-w-2xl animate-pulse">
+        <div className="h-8 w-48 bg-muted rounded mb-8" />
+        <div className="space-y-4">
+          <div className="h-12 bg-muted rounded" />
+          <div className="h-24 bg-muted rounded" />
+          <div className="h-12 bg-muted rounded" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-2xl">
       <Link
-        href="/admin/resources"
+        href="/dashboard/resources"
         className="inline-flex items-center gap-2 text-text-secondary mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Resources
+        Back to My Resources
       </Link>
 
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-text-primary">Add New Resource</h1>
+        <h1 className="text-2xl font-bold text-text-primary">Submit a Resource</h1>
         <p className="text-text-secondary mt-1">
-          Add a learning resource for the community
+          Share a tutorial, guide, tool, or other learning resource with the community
         </p>
       </div>
 
@@ -208,35 +239,17 @@ export default function NewResourcePage() {
           ]}
         />
 
-        <Select
-          label="Status"
-          name="status"
-          value={formData.status}
-          onChange={handleChange}
-          options={[
-            { value: 'pending', label: 'Pending Review' },
-            { value: 'approved', label: 'Approved' },
-            { value: 'rejected', label: 'Rejected' },
-            { value: 'featured', label: 'Featured' },
-          ]}
-        />
-
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            name="is_featured"
-            checked={formData.is_featured}
-            onChange={handleChange}
-            className="w-4 h-4 rounded border-border bg-surface text-primary focus:ring-primary"
-          />
-          <span className="text-sm text-text-primary">Feature this resource</span>
-        </label>
+        <div className="bg-muted/50 p-4 rounded border border-border">
+          <p className="text-sm text-text-secondary">
+            Your resource will be reviewed before appearing in the Learn section.
+          </p>
+        </div>
 
         <div className="flex gap-3 pt-4">
           <Button type="submit" isLoading={isLoading}>
-            Add Resource
+            Submit Resource
           </Button>
-          <Link href="/admin/resources">
+          <Link href="/dashboard/resources">
             <Button type="button" variant="secondary">
               Cancel
             </Button>

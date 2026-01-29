@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 import { Button, Input, Textarea, Select, ImageUpload } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
 import { RESOURCE_CATEGORIES, AI_TOOL_TYPES, RESOURCE_PRICING, RESOURCE_DIFFICULTY } from '@/lib/constants'
-import type { ResourceCategory, AIToolType, ResourcePricing, ResourceDifficulty } from '@/types'
+import type { ResourceCategory, AIToolType, ResourcePricing, ResourceDifficulty, ResourceStatus } from '@/types'
 
 export default function EditResourcePage() {
   const router = useRouter()
@@ -21,6 +21,7 @@ export default function EditResourcePage() {
     category: 'tutorial' as ResourceCategory,
     thumbnail_url: '',
     is_featured: false,
+    status: 'approved' as ResourceStatus,
     tags: '' as string,
     ai_tool_type: '' as AIToolType | '',
     pricing: '' as ResourcePricing | '',
@@ -51,6 +52,7 @@ export default function EditResourcePage() {
         category: data.category,
         thumbnail_url: data.thumbnail_url || '',
         is_featured: data.is_featured,
+        status: data.status || 'approved',
         tags: (data.tags || []).join(', '),
         ai_tool_type: data.ai_tool_type || '',
         pricing: data.pricing || '',
@@ -94,6 +96,7 @@ export default function EditResourcePage() {
           category: formData.category,
           thumbnail_url: formData.thumbnail_url.trim() || null,
           is_featured: formData.is_featured,
+          status: formData.status,
           tags: tags.length > 0 ? tags : [],
           ai_tool_type: formData.ai_tool_type || null,
           pricing: formData.pricing || null,
@@ -242,6 +245,19 @@ export default function EditResourcePage() {
               value: diff.value,
               label: diff.label,
             })),
+          ]}
+        />
+
+        <Select
+          label="Status"
+          name="status"
+          value={formData.status}
+          onChange={handleChange}
+          options={[
+            { value: 'pending', label: 'Pending Review' },
+            { value: 'approved', label: 'Approved' },
+            { value: 'rejected', label: 'Rejected' },
+            { value: 'featured', label: 'Featured' },
           ]}
         />
 

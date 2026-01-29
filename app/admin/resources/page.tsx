@@ -99,11 +99,17 @@ export default function AdminResourcesPage() {
               className="p-4 flex items-center justify-between gap-4"
             >
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-medium text-text-primary truncate">
                     {resource.title}
                   </h3>
                   <Badge size="sm">{resource.category}</Badge>
+                  <Badge
+                    size="sm"
+                    variant={resource.status === 'approved' || resource.status === 'featured' ? 'accent' : 'default'}
+                  >
+                    {resource.status === 'pending' ? 'Pending' : resource.status === 'approved' ? 'Approved' : resource.status === 'rejected' ? 'Rejected' : 'Featured'}
+                  </Badge>
                   {resource.is_featured && (
                     <Badge size="sm" variant="accent">Featured</Badge>
                   )}

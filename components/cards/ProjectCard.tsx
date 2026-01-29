@@ -7,7 +7,7 @@ import { Card } from '@/components/retroui/Card'
 import { Text } from '@/components/retroui/Text'
 import { Button } from '@/components/retroui/Button'
 import { TwitterAvatar } from '@/components/ui/TwitterAvatar'
-import { UpvoteButton } from '@/components/ui'
+import { UpvoteButton, DeleteProjectButton } from '@/components/ui'
 import type { Project } from '@/types'
 
 export interface ProjectCardProps {
@@ -137,6 +137,12 @@ export function ProjectCard({ project, userId, showStatus = false, className }: 
                   <Github className="w-4 h-4" />
                 </Button>
               </a>
+              {userId && project.user_id === userId && (
+                <DeleteProjectButton
+                  projectId={project.id}
+                  projectTitle={project.title}
+                />
+              )}
             </div>
           </div>
         </div>

@@ -370,7 +370,7 @@ export default async function LearnPage({ searchParams }: LearnPageProps) {
           // For other sections, use grid layout
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {resources.map((resource) => (
-              <ResourceCard key={resource.id} resource={resource} />
+              <ResourceCard key={resource.id} resource={resource} userId={user?.id || null} />
             ))}
           </div>
         )
