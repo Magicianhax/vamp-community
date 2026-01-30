@@ -4,13 +4,17 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { Button, Input, Textarea, Select, ImageUpload } from '@/components/ui'
+import dynamic from 'next/dynamic'
+import { Button, Input, Select, ImageUpload } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
 import type { GrantStatus } from '@/types'
+
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false })
 
 export default function NewGrantPage() {
   const router = useRouter()
-  const [userId, setUserId] = useState<string | null>(null)
+  const { user } = useAuth()
 
   const [formData, setFormData] = useState({
     title: '',
@@ -30,35 +34,14 @@ export default function NewGrantPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      setUserId(user.id)
-
-      // Pre-fill sponsor name with user's display name
-      const { data: profile } = await supabase
-        .from('users')
-        .select('display_name, username, twitter_handle')
-        .eq('id', user.id)
-        .single()
-
-      if (profile) {
-        setFormData((prev) => ({
-          ...prev,
-          sponsor_name: profile.display_name || profile.username || '',
-          sponsor_twitter_url: profile.twitter_handle ? `https://x.com/${profile.twitter_handle}` : '',
-        }))
-      }
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        sponsor_name: user.display_name || user.username || '',
+        sponsor_twitter_url: user.twitter_handle ? `https://x.com/${user.twitter_handle}` : '',
+      }))
     }
-
-    checkAuth()
-  }, [router])
+  }, [user])
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -70,7 +53,7 @@ export default function NewGrantPage() {
     e.preventDefault()
     setError('')
 
-    if (!userId) {
+    if (!user) {
       setError('Please sign in to create a grant')
       return
     }
@@ -93,7 +76,7 @@ export default function NewGrantPage() {
       const { error: insertError } = await supabase
         .from('grants')
         .insert({
-          created_by: userId,
+          created_by: user.id,
           title: formData.title.trim(),
           short_description: formData.short_description.trim() || null,
           description: formData.description.trim(),
@@ -120,7 +103,7 @@ export default function NewGrantPage() {
     }
   }
 
-  if (!userId) {
+  if (!user) {
     return (
       <div className="max-w-2xl animate-pulse">
         <div className="h-8 w-48 bg-muted rounded mb-8" />
@@ -174,15 +157,20 @@ export default function NewGrantPage() {
           onChange={handleChange}
         />
 
-        <Textarea
-          label="Full Description (Markdown supported)"
-          name="description"
-          placeholder="Describe what this grant is about, what you're looking for, and any specific criteria..."
-          value={formData.description}
-          onChange={handleChange}
-          rows={6}
-          required
-        />
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-text-primary">
+            Full Description <span className="text-error">*</span>
+          </label>
+          <div data-color-mode="light">
+            <MDEditor
+              value={formData.description}
+              onChange={(val) => setFormData((prev) => ({ ...prev, description: val || '' }))}
+              preview="edit"
+              height={200}
+            />
+          </div>
+          <p className="text-sm text-text-muted">Describe what this grant is about, what you're looking for, and any specific criteria</p>
+        </div>
 
         <Input
           label="Prize Amount"
@@ -193,18 +181,20 @@ export default function NewGrantPage() {
           required
         />
 
-        <Textarea
-          label="Requirements (Markdown supported)"
-          name="requirements"
-          placeholder="List the requirements for submissions:
-- Must be built using AI coding tools
-- Must include a demo video
-- Must be open source"
-          value={formData.requirements}
-          onChange={handleChange}
-          rows={6}
-          required
-        />
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-text-primary">
+            Requirements <span className="text-error">*</span>
+          </label>
+          <div data-color-mode="light">
+            <MDEditor
+              value={formData.requirements}
+              onChange={(val) => setFormData((prev) => ({ ...prev, requirements: val || '' }))}
+              preview="edit"
+              height={200}
+            />
+          </div>
+          <p className="text-sm text-text-muted">List the requirements for submissions (e.g., must be built with AI tools, include demo video, etc.)</p>
+        </div>
 
         <Input
           label="Deadline"

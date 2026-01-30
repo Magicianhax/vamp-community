@@ -4,9 +4,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { Button, Input, Textarea, Select } from '@/components/ui'
+import dynamic from 'next/dynamic'
+import { Button, Input, Select } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
 import type { GrantStatus } from '@/types'
+
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false })
 
 export default function NewGrantPage() {
   const router = useRouter()
@@ -119,15 +122,20 @@ export default function NewGrantPage() {
           onChange={handleChange}
         />
 
-        <Textarea
-          label="Description"
-          name="description"
-          placeholder="Describe what this grant is about..."
-          value={formData.description}
-          onChange={handleChange}
-          rows={4}
-          required
-        />
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-text-primary">
+            Description <span className="text-error">*</span>
+          </label>
+          <div data-color-mode="light">
+            <MDEditor
+              value={formData.description}
+              onChange={(val) => setFormData((prev) => ({ ...prev, description: val || '' }))}
+              preview="edit"
+              height={200}
+            />
+          </div>
+          <p className="text-sm text-text-muted">Describe what this grant is about (supports Markdown)</p>
+        </div>
 
         <Input
           label="Prize Amount"
@@ -138,15 +146,20 @@ export default function NewGrantPage() {
           required
         />
 
-        <Textarea
-          label="Requirements"
-          name="requirements"
-          placeholder="List the requirements for submissions..."
-          value={formData.requirements}
-          onChange={handleChange}
-          rows={6}
-          required
-        />
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-text-primary">
+            Requirements <span className="text-error">*</span>
+          </label>
+          <div data-color-mode="light">
+            <MDEditor
+              value={formData.requirements}
+              onChange={(val) => setFormData((prev) => ({ ...prev, requirements: val || '' }))}
+              preview="edit"
+              height={200}
+            />
+          </div>
+          <p className="text-sm text-text-muted">List the requirements for submissions (supports Markdown)</p>
+        </div>
 
         <Input
           label="Deadline"

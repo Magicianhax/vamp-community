@@ -42,7 +42,7 @@ export default async function AdminLayout({
             links={ADMIN_NAV_LINKS}
             title="Admin"
           />
-          <main className="flex-1 p-6 lg:p-8">{children}</main>
+          <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
         </div>
       </div>
     </div>

@@ -4,17 +4,20 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { Button, Input, Textarea, Select, Badge, ImageUpload } from '@/components/ui'
+import dynamic from 'next/dynamic'
+import { Button, Input, Select, Badge, ImageUpload } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
 import { RESOURCE_CATEGORIES, AI_TOOL_TYPES, RESOURCE_PRICING, RESOURCE_DIFFICULTY, RESOURCE_STATUS_LABELS } from '@/lib/constants'
+import { useAuth } from '@/contexts/AuthContext'
 import type { ResourceCategory, AIToolType, ResourcePricing, ResourceDifficulty, ResourceStatus } from '@/types'
+
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false })
 
 export default function EditResourcePage() {
   const router = useRouter()
   const params = useParams()
   const resourceId = params.id as string
-
-  const [userId, setUserId] = useState<string | null>(null)
+  const { user } = useAuth()
   const [status, setStatus] = useState<ResourceStatus>('pending')
   const [formData, setFormData] = useState({
     title: '',
@@ -33,16 +36,9 @@ export default function EditResourcePage() {
 
   useEffect(() => {
     const fetchResource = async () => {
+      if (!user) return
+
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      setUserId(user.id)
-
       const { data } = await supabase
         .from('resources')
         .select('*')
@@ -75,8 +71,10 @@ export default function EditResourcePage() {
       setIsFetching(false)
     }
 
-    fetchResource()
-  }, [resourceId, router])
+    if (user) {
+      fetchResource()
+    }
+  }, [resourceId, router, user])
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -88,7 +86,7 @@ export default function EditResourcePage() {
     e.preventDefault()
     setError('')
 
-    if (!userId) {
+    if (!user) {
       setError('Please sign in to edit this resource')
       return
     }
@@ -183,14 +181,20 @@ export default function EditResourcePage() {
           required
         />
 
-        <Textarea
-          label="Description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          rows={3}
-          required
-        />
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-text-primary">
+            Description <span className="text-error">*</span>
+          </label>
+          <div data-color-mode="light">
+            <MDEditor
+              value={formData.description}
+              onChange={(val) => setFormData((prev) => ({ ...prev, description: val || '' }))}
+              preview="edit"
+              height={150}
+            />
+          </div>
+          <p className="text-sm text-text-muted">Describe what this resource covers (supports Markdown)</p>
+        </div>
 
         <Input
           label="URL"

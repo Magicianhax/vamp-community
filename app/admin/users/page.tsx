@@ -58,9 +58,9 @@ export default function AdminUsersPage() {
 
   return (
     <div className="max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-text-primary">Manage Users</h1>
-        <p className="text-text-secondary mt-1">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Manage Users</h1>
+        <p className="text-sm sm:text-base text-text-secondary mt-1">
           View and manage platform users
         </p>
       </div>
@@ -69,25 +69,26 @@ export default function AdminUsersPage() {
         {users.map((user) => (
           <div
             key={user.id}
-            className="p-4 flex items-center justify-between gap-4"
+            className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
           >
-            <div className="flex items-center gap-4 flex-1 min-w-0">
+            <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
               <Avatar
                 src={user.avatar_url}
                 alt={user.display_name || user.username}
-                size="md"
+                size="sm"
+                className="sm:w-10 sm:h-10"
               />
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-medium text-text-primary truncate">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-medium text-text-primary text-sm sm:text-base truncate">
                     {user.display_name || user.username}
                   </h3>
                   {user.is_admin && (
                     <Badge variant="accent" size="sm">Admin</Badge>
                   )}
                 </div>
-                <p className="text-sm text-text-secondary">@{user.username}</p>
-                <p className="text-xs text-text-muted mt-1">
+                <p className="text-xs sm:text-sm text-text-secondary">@{user.username}</p>
+                <p className="text-[10px] sm:text-xs text-text-muted mt-1">
                   Joined {formatDate(user.created_at)}
                 </p>
               </div>
@@ -96,10 +97,10 @@ export default function AdminUsersPage() {
             <div className="flex items-center gap-2 flex-shrink-0">
               <Link
                 href={`/u/${user.username}`}
-                className="p-2 text-text-muted"
+                className="p-1.5 sm:p-2 text-text-muted"
                 title="View Profile"
               >
-                <ExternalLink className="w-4 h-4" />
+                <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Link>
 
               <Button
@@ -108,16 +109,19 @@ export default function AdminUsersPage() {
                 onClick={() => toggleAdmin(user.id, user.is_admin)}
                 isLoading={actionLoading === user.id}
                 disabled={actionLoading !== null}
+                className="text-xs sm:text-sm"
               >
                 {user.is_admin ? (
                   <>
-                    <ShieldOff className="w-4 h-4 mr-1" />
-                    Remove Admin
+                    <ShieldOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Remove Admin</span>
+                    <span className="sm:hidden">Remove</span>
                   </>
                 ) : (
                   <>
-                    <Shield className="w-4 h-4 mr-1" />
-                    Make Admin
+                    <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Make Admin</span>
+                    <span className="sm:hidden">Admin</span>
                   </>
                 )}
               </Button>

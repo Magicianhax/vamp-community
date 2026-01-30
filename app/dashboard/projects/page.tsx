@@ -26,15 +26,15 @@ export default async function DashboardProjectsPage() {
 
   return (
     <div className="max-w-5xl">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">My Projects</h1>
-          <p className="text-text-secondary mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-text-primary">My Projects</h1>
+          <p className="text-sm sm:text-base text-text-secondary mt-1">
             Manage your submitted projects
           </p>
         </div>
         <Link href="/dashboard/projects/new">
-          <Button>
+          <Button size="sm" className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             New Project
           </Button>

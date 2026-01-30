@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button, Input, Textarea } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function SettingsPage() {
-  const router = useRouter()
+  const { user, refreshUser } = useAuth()
   const [formData, setFormData] = useState({
     username: '',
     display_name: '',
@@ -21,37 +21,18 @@ export default function SettingsPage() {
   const [isFetching, setIsFetching] = useState(true)
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-
-      if (!session?.user) {
-        router.push('/login')
-        return
-      }
-
-      const user = session.user
-      const { data } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (data) {
-        setFormData({
-          username: data.username || '',
-          display_name: data.display_name || '',
-          bio: data.bio || '',
-          twitter_handle: data.twitter_handle || '',
-          github_handle: data.github_handle || '',
-          website: data.website || '',
-        })
-      }
+    if (user) {
+      setFormData({
+        username: user.username || '',
+        display_name: user.display_name || '',
+        bio: user.bio || '',
+        twitter_handle: user.twitter_handle || '',
+        github_handle: user.github_handle || '',
+        website: user.website || '',
+      })
       setIsFetching(false)
     }
-
-    fetchUser()
-  }, [router])
+  }, [user])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -74,18 +55,15 @@ export default function SettingsPage() {
       return
     }
 
+    if (!user) {
+      setError('Not authenticated')
+      return
+    }
+
     setIsLoading(true)
 
     try {
       const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-
-      if (!session?.user) {
-        router.push('/login')
-        return
-      }
-
-      const user = session.user
 
       // Check if username is taken by another user
       const { data: existingUser } = await supabase
@@ -117,6 +95,8 @@ export default function SettingsPage() {
         setError(updateError.message)
       } else {
         setSuccess('Profile updated successfully')
+        // Refresh the user data in context
+        await refreshUser()
       }
     } catch (err) {
       setError('An unexpected error occurred')
@@ -141,9 +121,9 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-text-primary">Settings</h1>
-        <p className="text-text-secondary mt-1">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Settings</h1>
+        <p className="text-sm sm:text-base text-text-secondary mt-1">
           Manage your profile and account settings
         </p>
       </div>

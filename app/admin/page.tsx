@@ -68,26 +68,26 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-text-primary">Admin Dashboard</h1>
-        <p className="text-text-secondary mt-1">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Admin Dashboard</h1>
+        <p className="text-sm sm:text-base text-text-secondary mt-1">
           Overview of platform activity and management tools
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {statCards.map((stat) => (
-          <Link key={stat.label} href={stat.href} className="card-hover p-6">
+          <Link key={stat.label} href={stat.href} className="card-hover p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-text-secondary">{stat.label}</p>
-                <p className={`text-3xl font-bold mt-1 ${stat.highlight ? 'text-accent' : 'text-text-primary'}`}>
+                <p className="text-xs sm:text-sm text-text-secondary">{stat.label}</p>
+                <p className={`text-2xl sm:text-3xl font-bold mt-1 ${stat.highlight ? 'text-accent' : 'text-text-primary'}`}>
                   {stat.value}
                 </p>
               </div>
-              <div className={`w-12 h-12 flex items-center justify-center ${stat.highlight ? 'bg-accent/10' : 'bg-primary/10'}`}>
-                <stat.icon className={`w-6 h-6 ${stat.highlight ? 'text-accent' : 'text-primary'}`} />
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center ${stat.highlight ? 'bg-accent/10' : 'bg-primary/10'}`}>
+                <stat.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.highlight ? 'text-accent' : 'text-primary'}`} />
               </div>
             </div>
           </Link>
@@ -96,15 +96,15 @@ export default async function AdminDashboardPage() {
 
       {/* Recent Activity */}
       <div className="card">
-        <div className="p-6 border-b border-border">
-          <h2 className="font-semibold text-text-primary">Recent Projects</h2>
+        <div className="p-4 sm:p-6 border-b border-border">
+          <h2 className="font-semibold text-text-primary text-sm sm:text-base">Recent Projects</h2>
         </div>
         <div className="divide-y divide-border">
           {recentProjects.map((project) => (
-            <div key={project.id} className="p-4 flex items-center justify-between">
-              <div>
-                <p className="font-medium text-text-primary">{project.title}</p>
-                <p className="text-sm text-text-secondary">
+            <div key={project.id} className="p-3 sm:p-4 flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-text-primary text-sm sm:text-base truncate">{project.title}</p>
+                <p className="text-xs sm:text-sm text-text-secondary">
                   by @{project.user?.username}
                 </p>
               </div>

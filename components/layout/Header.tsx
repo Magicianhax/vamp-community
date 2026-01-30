@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Menu, X, LogOut, User, Settings, LayoutDashboard, Shield, Search, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Container } from './Container'
@@ -12,12 +12,11 @@ import { TwitterAvatar } from '@/components/ui/TwitterAvatar'
 import { Card } from '@/components/retroui/Card'
 import { SignInModal, SearchModal, NotificationBell } from '@/components/ui'
 import { NAV_LINKS } from '@/lib/constants'
-import { createClient } from '@/lib/supabase/client'
-import type { User as UserType } from '@/types'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function Header() {
   const pathname = usePathname()
-  const router = useRouter()
+  const { user, isLoading, signOut } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isSignInOpen, setIsSignInOpen] = useState(false)
@@ -25,118 +24,6 @@ export function Header() {
   const [learnMenuOpen, setLearnMenuOpen] = useState(false)
   const learnMenuTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const learnMenuRef = useRef<HTMLDivElement>(null)
-  const [user, setUser] = useState<UserType | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    let mounted = true
-
-    const loadUser = async () => {
-      try {
-        const supabase = createClient()
-        console.log('Header: Creating Supabase client')
-
-        const getUser = async () => {
-          try {
-            console.log('Header: Getting session...')
-            // Use getSession() first - it's faster and reads from local storage
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-
-            if (sessionError) {
-              console.error('Header: Session error:', sessionError)
-              if (mounted) setIsLoading(false)
-              return
-            }
-
-            const authUser = session?.user
-            if (authUser) {
-              console.log('Header: Session found, fetching profile...', authUser.id)
-              let { data, error: profileError } = await supabase
-                .from('users')
-                .select('*')
-                .eq('id', authUser.id)
-                .single()
-
-              // If user doesn't exist, create them
-              if (profileError && profileError.code === 'PGRST116') {
-                console.log('Header: User profile not found, creating...')
-                const twitterUsername = authUser.user_metadata?.user_name || authUser.user_metadata?.preferred_username
-                const twitterName = authUser.user_metadata?.name || authUser.user_metadata?.full_name
-                const twitterAvatar = authUser.user_metadata?.avatar_url
-                
-                const username = (twitterUsername || 
-                                authUser.email?.split('@')[0] || 
-                                `user_${authUser.id.slice(0, 8)}`).toLowerCase()
-
-                const { data: newUser, error: createError } = await supabase
-                  .from('users')
-                  .insert({
-                    id: authUser.id,
-                    email: authUser.email,
-                    username: username, // Already lowercase
-                    display_name: twitterName || username,
-                    avatar_url: twitterAvatar || null,
-                    twitter_handle: twitterUsername || null,
-                  })
-                  .select()
-                  .single()
-
-                if (createError) {
-                  console.error('Header: Error creating user:', createError)
-                } else {
-                  console.log('Header: User profile created:', newUser?.username)
-                  data = newUser
-                  profileError = null
-                }
-              } else if (profileError) {
-                console.error('Header: Profile error:', profileError)
-              } else {
-                console.log('Header: Profile loaded:', data?.username)
-              }
-
-              if (mounted) setUser(data)
-            } else {
-              console.log('Header: No session found')
-            }
-          } catch (err) {
-            console.error('Header: Error in getUser:', err)
-          } finally {
-            if (mounted) setIsLoading(false)
-          }
-        }
-
-        await getUser()
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
-          console.log('Header: Auth state changed:', event)
-          if (event === 'SIGNED_IN' && session?.user) {
-            const { data } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', session.user.id)
-              .single()
-            if (mounted) setUser(data)
-          } else if (event === 'SIGNED_OUT') {
-            if (mounted) setUser(null)
-          }
-        })
-
-        return () => {
-          mounted = false
-          subscription.unsubscribe()
-        }
-      } catch (error) {
-        console.error('Header: Error initializing:', error)
-        if (mounted) setIsLoading(false)
-      }
-    }
-
-    const cleanup = loadUser()
-    return () => {
-      mounted = false
-      cleanup.then(cleanupFn => cleanupFn?.())
-    }
-  }, [])
 
   // Handle hover menu with delay to prevent closing when moving to submenu
   const handleLearnMenuEnter = () => {
@@ -155,11 +42,8 @@ export function Header() {
   }
 
   const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    setUser(null)
     setIsProfileOpen(false)
-    window.location.href = '/'
+    await signOut()
   }
 
 

@@ -39,6 +39,11 @@ next-env.d.ts
 # Scripts (local utilities)
 /scripts/
 
+# Tutorials content (local only)
+tutorials-content/
+query-for-mcp/
+query-for-mcp.json
+
 # Extra files
 PLAN.md
 TODO.md

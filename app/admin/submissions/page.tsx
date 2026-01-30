@@ -54,18 +54,19 @@ export default function AdminSubmissionsPage() {
   const rejectedSubmissions = submissions.filter((s) => s.status === 'rejected')
 
   const SubmissionRow = ({ submission }: { submission: SubmissionWithDetails }) => (
-    <div className="p-4 flex items-start justify-between gap-4">
-      <div className="flex items-start gap-4 flex-1 min-w-0">
+    <div className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+      <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
         <Avatar
           src={submission.user?.avatar_url}
           alt={submission.user?.username || 'User'}
-          size="md"
+          size="sm"
+          className="sm:w-10 sm:h-10"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <Link
               href={`/projects/${submission.project?.id}`}
-              className="font-medium text-text-primary truncate"
+              className="font-medium text-text-primary text-sm sm:text-base truncate"
             >
               {submission.project?.title}
             </Link>
@@ -73,29 +74,29 @@ export default function AdminSubmissionsPage() {
               {SUBMISSION_STATUS_LABELS[submission.status]}
             </Badge>
           </div>
-          <p className="text-sm text-text-secondary mt-1">
+          <p className="text-xs sm:text-sm text-text-secondary mt-1">
             Submitted to{' '}
             <Link href={`/grants/${submission.grant?.id}`} className="text-accent">
               {submission.grant?.title}
             </Link>
           </p>
-          <p className="text-xs text-text-muted mt-1">
+          <p className="text-[10px] sm:text-xs text-text-muted mt-1">
             by @{submission.user?.username} · {formatDate(submission.created_at)}
           </p>
           {submission.pitch && (
-            <p className="text-sm text-text-secondary mt-2 line-clamp-2">
+            <p className="text-xs sm:text-sm text-text-secondary mt-2 line-clamp-2">
               {submission.pitch}
             </p>
           )}
         </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 flex-wrap">
         <Link
           href={`/projects/${submission.project?.id}`}
-          className="p-2 text-text-muted"
+          className="p-1.5 sm:p-2 text-text-muted"
         >
-          <Eye className="w-4 h-4" />
+          <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </Link>
 
         {submission.status === 'submitted' && (
@@ -105,6 +106,7 @@ export default function AdminSubmissionsPage() {
             onClick={() => updateStatus(submission.id, 'under_review')}
             isLoading={actionLoading === submission.id}
             disabled={actionLoading !== null}
+            className="text-xs sm:text-sm"
           >
             Review
           </Button>
@@ -118,9 +120,10 @@ export default function AdminSubmissionsPage() {
               onClick={() => updateStatus(submission.id, 'winner')}
               isLoading={actionLoading === submission.id}
               disabled={actionLoading !== null}
+              className="text-xs sm:text-sm"
             >
-              <Trophy className="w-4 h-4 mr-1" />
-              Winner
+              <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
+              <span className="hidden sm:inline">Winner</span>
             </Button>
             <Button
               size="sm"
@@ -128,9 +131,10 @@ export default function AdminSubmissionsPage() {
               onClick={() => updateStatus(submission.id, 'rejected')}
               isLoading={actionLoading === submission.id}
               disabled={actionLoading !== null}
+              className="text-xs sm:text-sm"
             >
-              <X className="w-4 h-4 mr-1" />
-              Reject
+              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
+              <span className="hidden sm:inline">Reject</span>
             </Button>
           </>
         )}
@@ -142,6 +146,7 @@ export default function AdminSubmissionsPage() {
             onClick={() => updateStatus(submission.id, 'under_review')}
             isLoading={actionLoading === submission.id}
             disabled={actionLoading !== null}
+            className="text-xs sm:text-sm"
           >
             Revoke
           </Button>
@@ -153,8 +158,10 @@ export default function AdminSubmissionsPage() {
             onClick={() => updateStatus(submission.id, 'under_review')}
             isLoading={actionLoading === submission.id}
             disabled={actionLoading !== null}
+            className="text-xs sm:text-sm"
           >
-            Reconsider
+            <span className="hidden sm:inline">Reconsider</span>
+            <span className="sm:hidden">Retry</span>
           </Button>
         )}
       </div>
@@ -178,15 +185,15 @@ export default function AdminSubmissionsPage() {
 
   return (
     <div className="max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-text-primary">Grant Submissions</h1>
-        <p className="text-text-secondary mt-1">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Grant Submissions</h1>
+        <p className="text-sm sm:text-base text-text-secondary mt-1">
           Review and judge grant submissions
         </p>
       </div>
 
       <Tabs defaultValue="submitted">
-        <TabsList className="mb-6">
+        <TabsList className="mb-4 sm:mb-6 overflow-x-auto flex-nowrap">
           <TabsTrigger value="submitted">
             Submitted ({submittedSubmissions.length})
           </TabsTrigger>

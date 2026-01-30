@@ -10,11 +10,13 @@ import { Button, Input, Badge, ImageUpload } from '@/components/ui'
 const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false })
 import { createClient } from '@/lib/supabase/client'
 import { POPULAR_TAGS } from '@/lib/constants'
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function NewProjectPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const grantId = searchParams.get('grant')
+  const { user } = useAuth()
 
   const [formData, setFormData] = useState({
     title: '',
@@ -81,65 +83,15 @@ export default function NewProjectPage() {
       return
     }
 
+    if (!user) {
+      setError('Please sign in to submit a project')
+      return
+    }
+
     setIsLoading(true)
 
     try {
       const supabase = createClient()
-      
-      // First, try to get the session to ensure auth state is initialized
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      
-      if (sessionError) {
-        console.error('Session error:', sessionError)
-        setError(`Authentication error: ${sessionError.message}`)
-        setIsLoading(false)
-        return
-      }
-
-      if (!session || !session.user) {
-        console.error('No session or user found')
-        router.push('/login')
-        return
-      }
-
-      const user = session.user
-      console.log('Project submission: User authenticated:', user.id)
-
-      // Ensure user exists in users table (in case trigger didn't fire)
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('id', user.id)
-        .single()
-
-      if (!existingUser) {
-        console.log('User not found in users table, creating...')
-        // Extract username from email or use a default
-        const username = (user.email?.split('@')[0] || 
-                        user.user_metadata?.user_name || 
-                        user.user_metadata?.preferred_username ||
-                        `user_${user.id.slice(0, 8)}`).toLowerCase()
-        
-        const { error: createUserError } = await supabase
-          .from('users')
-          .insert({
-            id: user.id,
-            email: user.email,
-            username: username, // Already lowercase
-            display_name: user.user_metadata?.name || user.user_metadata?.full_name || username,
-            avatar_url: user.user_metadata?.avatar_url || null,
-            twitter_handle: user.user_metadata?.user_name || null,
-          })
-
-        if (createUserError) {
-          console.error('Error creating user:', createUserError)
-          setError(`Failed to create user profile: ${createUserError.message}`)
-          setIsLoading(false)
-          return
-        }
-      }
-
-      console.log('Submitting project with user:', user.id)
 
       const projectData = {
         user_id: user.id,

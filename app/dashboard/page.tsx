@@ -72,26 +72,26 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-5xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-text-primary">Dashboard</h1>
-        <p className="text-text-secondary mt-1">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Dashboard</h1>
+        <p className="text-sm sm:text-base text-text-secondary mt-1">
           Welcome back! Here&apos;s an overview of your activity.
         </p>
       </div>
 
       {/* Stats */}
-      <div className="grid sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
         {stats.map((stat) => (
-          <Link key={stat.label} href={stat.href} className="card-hover p-6">
+          <Link key={stat.label} href={stat.href} className="card-hover p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-text-secondary">{stat.label}</p>
-                <p className="text-3xl font-bold text-text-primary mt-1">
+                <p className="text-xs sm:text-sm text-text-secondary">{stat.label}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-text-primary mt-1">
                   {stat.value}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-primary/10 flex items-center justify-center">
-                <stat.icon className="w-6 h-6 text-primary" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 flex items-center justify-center">
+                <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               </div>
             </div>
           </Link>
@@ -99,9 +99,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="card p-6 mb-8">
-        <h2 className="font-semibold text-text-primary mb-4">Quick Actions</h2>
-        <div className="flex flex-wrap gap-3">
+      <div className="card p-4 sm:p-6 mb-6 sm:mb-8">
+        <h2 className="font-semibold text-text-primary mb-3 sm:mb-4 text-sm sm:text-base">Quick Actions</h2>
+        <div className="flex flex-wrap gap-2 sm:gap-3">
           <Link href="/dashboard/projects/new">
             <Button>Submit New Project</Button>
           </Link>

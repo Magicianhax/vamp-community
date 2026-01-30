@@ -48,54 +48,55 @@ export default function AdminProjectsPage() {
   const rejectedProjects = projects.filter((p) => p.status === 'rejected')
 
   const ProjectRow = ({ project }: { project: Project & { user: any } }) => (
-    <div className="p-4 flex items-start justify-between gap-4">
-      <div className="flex items-start gap-4 flex-1 min-w-0">
+    <div className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
+      <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
         <Avatar
           src={project.user?.avatar_url}
           alt={project.user?.username || 'User'}
-          size="md"
+          size="sm"
+          className="sm:w-10 sm:h-10"
         />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-medium text-text-primary truncate">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-medium text-text-primary text-sm sm:text-base truncate">
               {project.title}
             </h3>
             <Badge className={PROJECT_STATUS_COLORS[project.status]} size="sm">
               {project.status}
             </Badge>
           </div>
-          <p className="text-sm text-text-secondary truncate">{project.tagline}</p>
-          <p className="text-xs text-text-muted mt-1">
+          <p className="text-xs sm:text-sm text-text-secondary truncate">{project.tagline}</p>
+          <p className="text-[10px] sm:text-xs text-text-muted mt-1">
             by @{project.user?.username} · {formatRelativeTime(project.created_at)}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 flex-wrap">
         <a
           href={project.demo_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="p-2 text-text-muted"
+          className="p-1.5 sm:p-2 text-text-muted"
           title="View Demo"
         >
-          <ExternalLink className="w-4 h-4" />
+          <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </a>
         <a
           href={project.github_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="p-2 text-text-muted"
+          className="p-1.5 sm:p-2 text-text-muted"
           title="View GitHub"
         >
-          <Github className="w-4 h-4" />
+          <Github className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </a>
         <Link
           href={`/projects/${project.id}`}
-          className="p-2 text-text-muted"
+          className="p-1.5 sm:p-2 text-text-muted"
           title="View Project"
         >
-          <Eye className="w-4 h-4" />
+          <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </Link>
 
         {project.status === 'pending' && (
@@ -105,9 +106,10 @@ export default function AdminProjectsPage() {
               onClick={() => updateStatus(project.id, 'approved')}
               isLoading={actionLoading === project.id}
               disabled={actionLoading !== null}
+              className="text-xs sm:text-sm"
             >
-              <Check className="w-4 h-4 mr-1" />
-              Approve
+              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
+              <span className="hidden sm:inline">Approve</span>
             </Button>
             <Button
               size="sm"
@@ -115,9 +117,10 @@ export default function AdminProjectsPage() {
               onClick={() => updateStatus(project.id, 'rejected')}
               isLoading={actionLoading === project.id}
               disabled={actionLoading !== null}
+              className="text-xs sm:text-sm"
             >
-              <X className="w-4 h-4 mr-1" />
-              Reject
+              <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
+              <span className="hidden sm:inline">Reject</span>
             </Button>
           </>
         )}
@@ -129,9 +132,10 @@ export default function AdminProjectsPage() {
             onClick={() => updateStatus(project.id, 'featured')}
             isLoading={actionLoading === project.id}
             disabled={actionLoading !== null}
+            className="text-xs sm:text-sm"
           >
-            <Star className="w-4 h-4 mr-1" />
-            Feature
+            <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-1" />
+            <span className="hidden sm:inline">Feature</span>
           </Button>
         )}
 
@@ -142,8 +146,10 @@ export default function AdminProjectsPage() {
             onClick={() => updateStatus(project.id, 'approved')}
             isLoading={actionLoading === project.id}
             disabled={actionLoading !== null}
+            className="text-xs sm:text-sm"
           >
-            Unfeature
+            <span className="hidden sm:inline">Unfeature</span>
+            <span className="sm:hidden">Unfeat</span>
           </Button>
         )}
 
@@ -153,8 +159,10 @@ export default function AdminProjectsPage() {
             onClick={() => updateStatus(project.id, 'approved')}
             isLoading={actionLoading === project.id}
             disabled={actionLoading !== null}
+            className="text-xs sm:text-sm"
           >
-            Approve
+            <span className="hidden sm:inline">Approve</span>
+            <Check className="w-3.5 h-3.5 sm:hidden" />
           </Button>
         )}
       </div>
@@ -178,15 +186,15 @@ export default function AdminProjectsPage() {
 
   return (
     <div className="max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-text-primary">Manage Projects</h1>
-        <p className="text-text-secondary mt-1">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Manage Projects</h1>
+        <p className="text-sm sm:text-base text-text-secondary mt-1">
           Review and moderate project submissions
         </p>
       </div>
 
       <Tabs defaultValue="pending">
-        <TabsList className="mb-6">
+        <TabsList className="mb-4 sm:mb-6 overflow-x-auto flex-nowrap">
           <TabsTrigger value="pending">
             Pending ({pendingProjects.length})
           </TabsTrigger>

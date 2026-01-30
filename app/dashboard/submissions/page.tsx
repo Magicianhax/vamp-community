@@ -27,18 +27,18 @@ export default async function SubmissionsPage() {
 
   return (
     <div className="max-w-5xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-text-primary">Grant Submissions</h1>
-        <p className="text-text-secondary mt-1">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Grant Submissions</h1>
+        <p className="text-sm sm:text-base text-text-secondary mt-1">
           Track the status of your grant applications
         </p>
       </div>
 
       {submissions.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {submissions.map((submission) => (
-            <div key={submission.id} className="card p-6">
-              <div className="flex items-start justify-between gap-4">
+            <div key={submission.id} className="card p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
                 <div className="flex-1">
                   <Link
                     href={`/projects/${submission.project?.id}`}

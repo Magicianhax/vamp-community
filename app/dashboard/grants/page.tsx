@@ -2,29 +2,24 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Plus, Edit, Trash2, ExternalLink, Trophy } from 'lucide-react'
 import { Button, Badge } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate } from '@/lib/utils'
 import { GRANT_STATUS_LABELS } from '@/lib/constants'
+import { useAuth } from '@/contexts/AuthContext'
 import type { Grant } from '@/types'
 
 export default function DashboardGrantsPage() {
+  const { user } = useAuth()
   const [grants, setGrants] = useState<Grant[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
-  const router = useRouter()
 
   const fetchGrants = async () => {
+    if (!user) return
+
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      router.push('/login')
-      return
-    }
-
     const { data } = await supabase
       .from('grants')
       .select('*')
@@ -36,8 +31,10 @@ export default function DashboardGrantsPage() {
   }
 
   useEffect(() => {
-    fetchGrants()
-  }, [])
+    if (user) {
+      fetchGrants()
+    }
+  }, [user])
 
   const handleDelete = async (grantId: string, title: string) => {
     if (!confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
@@ -84,15 +81,15 @@ export default function DashboardGrantsPage() {
 
   return (
     <div className="max-w-5xl">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">My Grants</h1>
-          <p className="text-text-secondary mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-text-primary">My Grants</h1>
+          <p className="text-sm sm:text-base text-text-secondary mt-1">
             Manage grants you&apos;ve created to sponsor the community
           </p>
         </div>
         <Link href="/dashboard/grants/new">
-          <Button>
+          <Button size="sm" className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             New Grant
           </Button>
@@ -104,28 +101,29 @@ export default function DashboardGrantsPage() {
           {grants.map((grant) => (
             <div
               key={grant.id}
-              className="p-4 flex items-center justify-between gap-4"
+              className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
             >
-              <div className="flex items-center gap-4 flex-1 min-w-0">
-                <div className="w-12 h-12 border-2 border-black shadow-md bg-primary flex items-center justify-center flex-shrink-0">
-                  <Trophy className="w-6 h-6 text-primary-foreground" />
+              <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 border-2 border-black shadow-md bg-primary flex items-center justify-center flex-shrink-0">
+                  <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-medium text-text-primary truncate">
+                    <h3 className="font-medium text-text-primary text-sm sm:text-base truncate">
                       {grant.title}
                     </h3>
                     <Badge
                       size="sm"
+                      className="text-[10px] sm:text-xs"
                       variant={grant.status === 'active' ? 'accent' : 'default'}
                     >
                       {GRANT_STATUS_LABELS[grant.status]}
                     </Badge>
                   </div>
-                  <p className="text-sm text-text-secondary truncate mt-1">
+                  <p className="text-xs sm:text-sm text-text-secondary truncate mt-1">
                     {grant.prize_amount} &middot; Deadline: {formatDate(grant.deadline)}
                   </p>
-                  <p className="text-xs text-text-muted mt-1">
+                  <p className="text-[10px] sm:text-xs text-text-muted mt-1">
                     Created {formatDate(grant.created_at)}
                   </p>
                 </div>

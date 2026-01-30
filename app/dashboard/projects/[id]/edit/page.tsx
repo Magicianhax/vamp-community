@@ -4,14 +4,19 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, X, Trash2 } from 'lucide-react'
-import { Button, Input, Textarea, Badge, ConfirmModal, ImageUpload } from '@/components/ui'
+import dynamic from 'next/dynamic'
+import { Button, Input, Badge, ConfirmModal, ImageUpload } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
 import { POPULAR_TAGS } from '@/lib/constants'
+import { useAuth } from '@/contexts/AuthContext'
+
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false })
 
 export default function EditProjectPage() {
   const router = useRouter()
   const params = useParams()
   const projectId = params.id as string
+  const { user } = useAuth()
 
   const [formData, setFormData] = useState({
     title: '',
@@ -31,16 +36,9 @@ export default function EditProjectPage() {
 
   useEffect(() => {
     const fetchProject = async () => {
+      if (!user) return
+
       const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-
-      if (!session?.user) {
-        router.push('/login')
-        return
-      }
-
-      const user = session.user
-
       const { data } = await supabase
         .from('projects')
         .select('*')
@@ -65,8 +63,10 @@ export default function EditProjectPage() {
       setIsFetching(false)
     }
 
-    fetchProject()
-  }, [projectId, router])
+    if (user) {
+      fetchProject()
+    }
+  }, [projectId, router, user])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -211,14 +211,20 @@ export default function EditProjectPage() {
           required
         />
 
-        <Textarea
-          label="Description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          rows={6}
-          required
-        />
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-text-primary">
+            Description <span className="text-error">*</span>
+          </label>
+          <div data-color-mode="light">
+            <MDEditor
+              value={formData.description}
+              onChange={(val) => setFormData((prev) => ({ ...prev, description: val || '' }))}
+              preview="edit"
+              height={250}
+            />
+          </div>
+          <p className="text-sm text-text-muted">Supports Markdown formatting</p>
+        </div>
 
         <Input
           label="Demo URL"

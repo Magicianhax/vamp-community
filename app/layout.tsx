@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Archivo_Black, Space_Grotesk } from 'next/font/google'
 import { BackgroundAnimation } from '@/components/layout/BackgroundAnimation'
+import { AuthProvider } from '@/contexts/AuthContext'
 import './globals.css'
 
 const archivoBlack = Archivo_Black({
@@ -50,8 +51,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${archivoBlack.variable} ${spaceGrotesk.variable}`}>
-        <BackgroundAnimation />
-        {children}
+        <AuthProvider>
+          <BackgroundAnimation />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )

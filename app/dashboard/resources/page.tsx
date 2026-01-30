@@ -2,29 +2,24 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Plus, Edit, Trash2, ExternalLink } from 'lucide-react'
 import { Button, Badge } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate } from '@/lib/utils'
 import { RESOURCE_STATUS_LABELS, RESOURCE_CATEGORIES } from '@/lib/constants'
+import { useAuth } from '@/contexts/AuthContext'
 import type { Resource } from '@/types'
 
 export default function DashboardResourcesPage() {
+  const { user } = useAuth()
   const [resources, setResources] = useState<Resource[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
-  const router = useRouter()
 
   const fetchResources = async () => {
+    if (!user) return
+
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      router.push('/login')
-      return
-    }
-
     const { data } = await supabase
       .from('resources')
       .select('*')
@@ -36,8 +31,10 @@ export default function DashboardResourcesPage() {
   }
 
   useEffect(() => {
-    fetchResources()
-  }, [])
+    if (user) {
+      fetchResources()
+    }
+  }, [user])
 
   const handleDelete = async (resourceId: string, title: string) => {
     if (!confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
@@ -88,15 +85,15 @@ export default function DashboardResourcesPage() {
 
   return (
     <div className="max-w-5xl">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">My Resources</h1>
-          <p className="text-text-secondary mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-text-primary">My Resources</h1>
+          <p className="text-sm sm:text-base text-text-secondary mt-1">
             Manage your submitted tutorials, guides, and tools
           </p>
         </div>
         <Link href="/dashboard/resources/new">
-          <Button>
+          <Button size="sm" className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
             New Resource
           </Button>
@@ -108,25 +105,26 @@ export default function DashboardResourcesPage() {
           {resources.map((resource) => (
             <div
               key={resource.id}
-              className="p-4 flex items-center justify-between gap-4"
+              className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-medium text-text-primary truncate">
+                  <h3 className="font-medium text-text-primary text-sm sm:text-base truncate">
                     {resource.title}
                   </h3>
-                  <Badge size="sm">{getCategoryLabel(resource.category)}</Badge>
+                  <Badge size="sm" className="text-[10px] sm:text-xs">{getCategoryLabel(resource.category)}</Badge>
                   <Badge
                     size="sm"
+                    className="text-[10px] sm:text-xs"
                     variant={resource.status === 'approved' || resource.status === 'featured' ? 'accent' : 'default'}
                   >
                     {RESOURCE_STATUS_LABELS[resource.status]}
                   </Badge>
                 </div>
-                <p className="text-sm text-text-secondary truncate mt-1">
+                <p className="text-xs sm:text-sm text-text-secondary truncate mt-1">
                   {resource.description}
                 </p>
-                <p className="text-xs text-text-muted mt-1">
+                <p className="text-[10px] sm:text-xs text-text-muted mt-1">
                   Submitted {formatDate(resource.created_at)}
                 </p>
               </div>

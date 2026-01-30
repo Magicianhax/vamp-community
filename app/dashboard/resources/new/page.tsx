@@ -1,17 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { Button, Input, Textarea, Select, ImageUpload } from '@/components/ui'
+import dynamic from 'next/dynamic'
+import { Button, Input, Select, ImageUpload } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
 import { RESOURCE_CATEGORIES, AI_TOOL_TYPES, RESOURCE_PRICING, RESOURCE_DIFFICULTY } from '@/lib/constants'
+import { useAuth } from '@/contexts/AuthContext'
 import type { ResourceCategory, AIToolType, ResourcePricing, ResourceDifficulty } from '@/types'
+
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false })
 
 export default function NewResourcePage() {
   const router = useRouter()
-  const [userId, setUserId] = useState<string | null>(null)
+  const { user } = useAuth()
 
   const [formData, setFormData] = useState({
     title: '',
@@ -27,22 +31,6 @@ export default function NewResourcePage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      setUserId(user.id)
-    }
-
-    checkAuth()
-  }, [router])
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -53,7 +41,7 @@ export default function NewResourcePage() {
     e.preventDefault()
     setError('')
 
-    if (!userId) {
+    if (!user) {
       setError('Please sign in to submit a resource')
       return
     }
@@ -77,7 +65,7 @@ export default function NewResourcePage() {
       const { error: insertError } = await supabase
         .from('resources')
         .insert({
-          user_id: userId,
+          user_id: user.id,
           title: formData.title.trim(),
           description: formData.description.trim(),
           url: formData.url.trim(),
@@ -103,7 +91,7 @@ export default function NewResourcePage() {
     }
   }
 
-  if (!userId) {
+  if (!user) {
     return (
       <div className="max-w-2xl animate-pulse">
         <div className="h-8 w-48 bg-muted rounded mb-8" />
@@ -149,15 +137,20 @@ export default function NewResourcePage() {
           required
         />
 
-        <Textarea
-          label="Description"
-          name="description"
-          placeholder="Describe what this resource covers..."
-          value={formData.description}
-          onChange={handleChange}
-          rows={3}
-          required
-        />
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-text-primary">
+            Description <span className="text-error">*</span>
+          </label>
+          <div data-color-mode="light">
+            <MDEditor
+              value={formData.description}
+              onChange={(val) => setFormData((prev) => ({ ...prev, description: val || '' }))}
+              preview="edit"
+              height={150}
+            />
+          </div>
+          <p className="text-sm text-text-muted">Describe what this resource covers (supports Markdown)</p>
+        </div>
 
         <Input
           label="URL"

@@ -4,10 +4,13 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { Button, Input, Textarea, Select, ImageUpload } from '@/components/ui'
+import dynamic from 'next/dynamic'
+import { Button, Input, Select, ImageUpload } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
 import { RESOURCE_CATEGORIES, AI_TOOL_TYPES, RESOURCE_PRICING, RESOURCE_DIFFICULTY } from '@/lib/constants'
 import type { ResourceCategory, AIToolType, ResourcePricing, ResourceDifficulty, ResourceStatus } from '@/types'
+
+const MDEditor = dynamic(() => import('@uiw/react-md-editor'), { ssr: false })
 
 export default function EditResourcePage() {
   const router = useRouter()
@@ -160,14 +163,20 @@ export default function EditResourcePage() {
           required
         />
 
-        <Textarea
-          label="Description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          rows={3}
-          required
-        />
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-text-primary">
+            Description <span className="text-error">*</span>
+          </label>
+          <div data-color-mode="light">
+            <MDEditor
+              value={formData.description}
+              onChange={(val) => setFormData((prev) => ({ ...prev, description: val || '' }))}
+              preview="edit"
+              height={150}
+            />
+          </div>
+          <p className="text-sm text-text-muted">Describe what this resource covers (supports Markdown)</p>
+        </div>
 
         <Input
           label="URL"
