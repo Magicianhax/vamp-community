@@ -12,9 +12,11 @@ export type { GrantRowProps } from './GrantRow'
 
 export { ResourceCard, ResourceCardSkeleton } from './ResourceCard'
 export { ResourceRow } from './ResourceRow'
+export { ResourceList } from './ResourceList'
 export { GuideArticleCard } from './GuideArticleCard'
 export type { ResourceCardProps } from './ResourceCard'
 export type { ResourceRowProps } from './ResourceRow'
+export type { ResourceListProps } from './ResourceList'
 
 export { UserCard, UserCardSkeleton } from './UserCard'
 export type { UserCardProps } from './UserCard'

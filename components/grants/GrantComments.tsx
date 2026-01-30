@@ -453,7 +453,7 @@ function CommentItem({
                           </div>
                           {isReplyingToThis && (
                             <form
-                              onSubmit={(e) => onReply(e, comment.id)}
+                              onSubmit={(e) => onReply(e, r.id)}
                               className="mt-2 flex gap-2"
                             >
                               <Input

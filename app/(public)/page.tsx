@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Container } from '@/components/layout'
-import { GrantRow, ProjectRow, ResourceRow } from '@/components/cards'
+import { GrantRow, ProjectRow, ResourceList } from '@/components/cards'
 import { TwitterAvatar } from '@/components/ui/TwitterAvatar'
 import { Card } from '@/components/retroui/Card'
 import { Button } from '@/components/retroui/Button'
@@ -251,16 +251,10 @@ export default async function HomePage() {
                   href="/learn?section=tools"
                   icon={<Sparkles />}
                 />
-                <div className="space-y-2 w-full">
-                  {aiToolsWithVotes.slice(0, 6).map((tool: any, i: number) => (
-                    <ResourceRow
-                      key={tool.id}
-                      resource={tool}
-                      rank={i + 1}
-                      userId={user?.id}
-                    />
-                  ))}
-                </div>
+                <ResourceList
+                  resources={aiToolsWithVotes.slice(0, 6)}
+                  userId={user?.id}
+                />
               </section>
             )}
 
@@ -272,16 +266,10 @@ export default async function HomePage() {
                 icon={<BookOpen />}
               />
               {resourcesWithVotes.length > 0 ? (
-                <div className="space-y-2 w-full">
-                  {resourcesWithVotes.map((resource: any, i: number) => (
-                    <ResourceRow
-                      key={resource.id}
-                      resource={resource}
-                      rank={i + 1}
-                      userId={user?.id}
-                    />
-                  ))}
-                </div>
+                <ResourceList
+                  resources={resourcesWithVotes}
+                  userId={user?.id}
+                />
               ) : (
                 <EmptyState message="No resources available yet" icon={<BookOpen className="w-10 h-10 text-muted-foreground" />} />
               )}
