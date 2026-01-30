@@ -187,14 +187,24 @@ export default async function HomePage() {
     upvote_count: resourceVoteCounts[r.id]?.upvotes || 0,
     downvote_count: resourceVoteCounts[r.id]?.downvotes || 0,
     user_vote: userResourceVotes[r.id] || null,
-  }))
+  })).sort((a: any, b: any) => {
+    // Featured first, then by upvotes
+    if (a.is_featured && !b.is_featured) return -1
+    if (!a.is_featured && b.is_featured) return 1
+    return b.upvote_count - a.upvote_count
+  })
 
   const aiToolsWithVotes = aiTools.map((r: any) => ({
     ...r,
     upvote_count: resourceVoteCounts[r.id]?.upvotes || 0,
     downvote_count: resourceVoteCounts[r.id]?.downvotes || 0,
     user_vote: userResourceVotes[r.id] || null,
-  }))
+  })).sort((a: any, b: any) => {
+    // Featured first, then by upvotes
+    if (a.is_featured && !b.is_featured) return -1
+    if (!a.is_featured && b.is_featured) return 1
+    return b.upvote_count - a.upvote_count
+  })
 
   return (
     <div className="min-h-screen">

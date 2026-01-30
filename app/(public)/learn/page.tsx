@@ -126,13 +126,24 @@ async function getResources(filters: LearnPageProps['searchParams'], userId?: st
     return acc
   }, {} as Record<string, { upvotes: number; downvotes: number }>) || {}
 
-  // Add vote data to resources
-  return resources.map((resource) => ({
+  // Add vote data to resources and sort by upvotes (featured first, then by upvotes)
+  const resourcesWithVotes = resources.map((resource) => ({
     ...resource,
     upvote_count: voteCountsMap[resource.id]?.upvotes || 0,
     downvote_count: voteCountsMap[resource.id]?.downvotes || 0,
     user_vote: userVotes[resource.id] || null,
-  })) as (Resource & {
+  }))
+
+  // Sort: featured first, then by upvote count (descending), then by created_at (newest first)
+  return resourcesWithVotes.sort((a, b) => {
+    // Featured items first
+    if (a.is_featured && !b.is_featured) return -1
+    if (!a.is_featured && b.is_featured) return 1
+    // Then by upvote count
+    if (b.upvote_count !== a.upvote_count) return b.upvote_count - a.upvote_count
+    // Then by created_at
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  }) as (Resource & {
     upvote_count: number
     downvote_count: number
     user_vote: 'upvote' | 'downvote' | null
