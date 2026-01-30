@@ -93,7 +93,10 @@ export async function GET(request: NextRequest) {
         console.error('Error in avatar refresh on signup:', err)
       }
 
-      return NextResponse.redirect(new URL(next, origin))
+      // Redirect through loading page to ensure client-side auth state is initialized
+      const loadingUrl = new URL('/auth/loading', origin)
+      loadingUrl.searchParams.set('next', next)
+      return NextResponse.redirect(loadingUrl)
     }
   }
 
