@@ -188,13 +188,20 @@ TWITTER_BEARER_TOKEN=your-twitter-bearer-token
 
 ### 1. Create Database Tables
 
-Go to **Supabase Dashboard** → **SQL Editor** and run the following SQL to create the required tables:
+**Option A – One-click deploy (recommended)**  
+Run the full schema in one go (correct table order, RLS, triggers, storage):
+
+- Open **Supabase Dashboard** → **SQL Editor**
+- Paste and run the contents of [`supabase/full_schema_deploy.sql`](supabase/full_schema_deploy.sql)
+
+**Option B – Step by step**  
+Create tables manually in dependency order (grants before projects). Run in **Supabase Dashboard** → **SQL Editor**:
 
 ```sql
--- Users table
+-- Users table (email nullable for Twitter-only auth)
 CREATE TABLE users (
   id UUID PRIMARY KEY REFERENCES auth.users(id),
-  email TEXT NOT NULL,
+  email TEXT,
   username TEXT UNIQUE NOT NULL,
   display_name TEXT,
   bio TEXT,
@@ -203,6 +210,27 @@ CREATE TABLE users (
   github_handle TEXT,
   website TEXT,
   is_admin BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Grants table (must exist before projects – projects reference grants)
+CREATE TABLE grants (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  short_description TEXT,
+  description TEXT NOT NULL,
+  prize_amount TEXT NOT NULL,
+  requirements TEXT NOT NULL,
+  deadline TIMESTAMP WITH TIME ZONE NOT NULL,
+  sponsor_name TEXT NOT NULL,
+  sponsor_logo_url TEXT,
+  sponsor_twitter_url TEXT,
+  tweet_url TEXT,
+  image_urls TEXT[] DEFAULT '{}',
+  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'closed', 'completed')),
+  created_by UUID REFERENCES users(id),
+  comment_count INTEGER DEFAULT 0 NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -228,27 +256,7 @@ CREATE TABLE projects (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Grants table
-CREATE TABLE grants (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  short_description TEXT,
-  description TEXT NOT NULL,
-  prize_amount TEXT NOT NULL,
-  requirements TEXT NOT NULL,
-  deadline TIMESTAMP WITH TIME ZONE NOT NULL,
-  sponsor_name TEXT NOT NULL,
-  sponsor_logo_url TEXT,
-  sponsor_twitter_url TEXT,
-  tweet_url TEXT,
-  image_urls TEXT[] DEFAULT '{}',
-  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'closed', 'completed')),
-  created_by UUID REFERENCES users(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Resources table (Learn section)
+-- Resources table (Learn section; user_id and status for community submissions)
 CREATE TABLE resources (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
@@ -261,9 +269,15 @@ CREATE TABLE resources (
   ai_tool_type TEXT CHECK (ai_tool_type IN ('code-assistant', 'image-generator', 'text-generator', 'design-tool', 'video-generator', 'audio-generator', 'data-analysis', 'other')),
   pricing TEXT CHECK (pricing IN ('free', 'freemium', 'paid', 'open-source')),
   difficulty TEXT CHECK (difficulty IN ('beginner', 'intermediate', 'advanced')),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'featured')),
+  comment_count INTEGER DEFAULT 0 NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+CREATE INDEX idx_resources_user_id ON resources(user_id);
+CREATE INDEX idx_resources_status ON resources(status);
 
 -- Upvotes table
 CREATE TABLE upvotes (
@@ -314,8 +328,26 @@ CREATE TABLE resource_votes (
   resource_id UUID REFERENCES resources(id) NOT NULL,
   vote_type TEXT NOT NULL CHECK (vote_type IN ('upvote', 'downvote')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(user_id, resource_id)
 );
+
+-- Notifications table
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('comment_reply', 'project_comment', 'grant_comment', 'grant_submission', 'project_approved', 'grant_winner')),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  link TEXT,
+  is_read BOOLEAN DEFAULT FALSE NOT NULL,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);
+
+CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX idx_notifications_user_unread ON notifications(user_id, is_read) WHERE is_read = false;
+CREATE INDEX idx_notifications_created_at ON notifications(created_at DESC);
 ```
 
 ### 2. Set Up Row Level Security (RLS)
@@ -333,20 +365,61 @@ ALTER TABLE downvotes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE grant_submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE resource_votes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 -- Public read access for most tables
 CREATE POLICY "Public read access" ON users FOR SELECT USING (true);
-CREATE POLICY "Public read access" ON projects FOR SELECT USING (status IN ('approved', 'featured'));
-CREATE POLICY "Public read access" ON grants FOR SELECT USING (status IN ('active', 'closed', 'completed'));
-CREATE POLICY "Public read access" ON resources FOR SELECT USING (true);
+CREATE POLICY "Public read access" ON projects FOR SELECT USING (status IN ('approved', 'featured') OR auth.uid() = user_id);
+CREATE POLICY "Public read access" ON grants FOR SELECT USING (status IN ('active', 'closed', 'completed') OR auth.uid() = created_by);
+CREATE POLICY "Public read access" ON resources FOR SELECT USING (status IN ('approved', 'featured') OR auth.uid() = user_id);
 CREATE POLICY "Public read access" ON comments FOR SELECT USING (true);
+CREATE POLICY "Public read access" ON upvotes FOR SELECT USING (true);
+CREATE POLICY "Public read access" ON downvotes FOR SELECT USING (true);
+CREATE POLICY "Public read access" ON grant_submissions FOR SELECT USING (true);
+CREATE POLICY "Public read access" ON resource_votes FOR SELECT USING (true);
 
 -- Users can update their own profile
 CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid() = id);
 
--- Users can create their own content
+-- Projects
 CREATE POLICY "Users can create projects" ON projects FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own projects" ON projects FOR UPDATE USING (auth.uid() = user_id);
+
+-- Grants
+CREATE POLICY "Users can create grants" ON grants FOR INSERT WITH CHECK (auth.uid() = created_by);
+CREATE POLICY "Users can update own grants" ON grants FOR UPDATE USING (auth.uid() = created_by);
+CREATE POLICY "Users can delete own grants" ON grants FOR DELETE USING (auth.uid() = created_by);
+
+-- Resources
+CREATE POLICY "Users can insert resources" ON resources FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own resources" ON resources FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own resources" ON resources FOR DELETE USING (auth.uid() = user_id);
+
+-- Upvotes / downvotes
+CREATE POLICY "Users can insert upvotes" ON upvotes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own upvotes" ON upvotes FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert downvotes" ON downvotes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own downvotes" ON downvotes FOR DELETE USING (auth.uid() = user_id);
+
+-- Grant submissions
+CREATE POLICY "Users can insert grant_submissions" ON grant_submissions FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own grant_submissions" ON grant_submissions FOR UPDATE USING (auth.uid() = user_id);
+
+-- Comments
+CREATE POLICY "Users can insert comments" ON comments FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own comments" ON comments FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own comments" ON comments FOR DELETE USING (auth.uid() = user_id);
+
+-- Resource votes
+CREATE POLICY "Users can insert resource_votes" ON resource_votes FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own resource_votes" ON resource_votes FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own resource_votes" ON resource_votes FOR DELETE USING (auth.uid() = user_id);
+
+-- Notifications: users can only view/update/delete their own
+CREATE POLICY "Users can view own notifications" ON notifications FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update own notifications" ON notifications FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own notifications" ON notifications FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "System can insert notifications" ON notifications FOR INSERT WITH CHECK (true);
 ```
 
 ### 3. Set Up Avatar Storage
@@ -369,6 +442,31 @@ ON CONFLICT (id) DO NOTHING;
 CREATE POLICY "Public Avatar Access" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
 CREATE POLICY "Users can upload own avatars" ON storage.objects FOR INSERT WITH CHECK (
   bucket_id = 'avatars' AND (auth.role() = 'service_role' OR auth.uid()::text = (string_to_array(name, '/'))[1])
+);
+```
+
+### 3b. Set Up Images Storage (project thumbnails, article images)
+
+```sql
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'images',
+  'images',
+  true,
+  5242880,
+  ARRAY['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+)
+ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Public Image Access" ON storage.objects FOR SELECT USING (bucket_id = 'images');
+CREATE POLICY "Authenticated users can upload images" ON storage.objects FOR INSERT WITH CHECK (
+  bucket_id = 'images' AND auth.role() = 'authenticated'
+);
+CREATE POLICY "Users can update own images" ON storage.objects FOR UPDATE USING (
+  bucket_id = 'images' AND (storage.foldername(name))[1] = auth.uid()::text
+);
+CREATE POLICY "Users can delete own images" ON storage.objects FOR DELETE USING (
+  bucket_id = 'images' AND (storage.foldername(name))[1] = auth.uid()::text
 );
 ```
 
@@ -568,7 +666,8 @@ users
   ├── downvotes (one-to-many)
   ├── comments (one-to-many)
   ├── grant_submissions (one-to-many)
-  └── resource_votes (one-to-many)
+  ├── resource_votes (one-to-many)
+  └── notifications (one-to-many)
 
 projects
   ├── user (many-to-one)
