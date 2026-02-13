@@ -101,8 +101,6 @@ export function ResourceComments({ resourceId, userId, isAdmin = false }: Resour
         setSubmitting(false)
         return
       }
-      
-      console.log('ResourceComments: Inserting comment with user_id:', userId)
 
       const { error: insertError } = await supabase.from('comments').insert({
         resource_id: resourceId,
@@ -160,8 +158,6 @@ export function ResourceComments({ resourceId, userId, isAdmin = false }: Resour
         setSubmitting(false)
         return
       }
-      
-      console.log('ResourceComments Reply: Inserting reply with user_id:', userId)
 
       const { error: insertError } = await supabase.from('comments').insert({
         resource_id: resourceId,

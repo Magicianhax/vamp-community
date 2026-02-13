@@ -53,8 +53,6 @@ export function UpvoteButton({
         setIsLoading(false)
         return
       }
-      
-      console.log('UpvoteButton: Voting with user_id:', userId, 'upvoted:', upvoted)
 
       if (upvoted) {
         const { error } = await supabase
