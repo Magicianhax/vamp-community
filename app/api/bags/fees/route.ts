@@ -13,47 +13,49 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Get lifetime fees (all-time total)
-    const lifetimeFeesResponse = await fetch(
-      `${BAGS_API_BASE}/token-launch/lifetime-fees?tokenMint=${VAMP_TOKEN_MINT}`,
-      {
-        headers: {
-          'x-api-key': BAGS_API_KEY,
-        },
-      }
-    )
+    // Get lifetime fees and claim stats in parallel
+    const [lifetimeFeesResponse, claimStatsResponse] = await Promise.all([
+      fetch(
+        `${BAGS_API_BASE}/token-launch/lifetime-fees?tokenMint=${VAMP_TOKEN_MINT}`,
+        {
+          headers: {
+            'x-api-key': BAGS_API_KEY,
+          },
+        }
+      ),
+      fetch(
+        `${BAGS_API_BASE}/token-launch/claim-stats?tokenMint=${VAMP_TOKEN_MINT}`,
+        {
+          headers: {
+            'x-api-key': BAGS_API_KEY,
+          },
+        }
+      )
+    ])
 
     if (!lifetimeFeesResponse.ok) {
       throw new Error(`Lifetime fees API error: ${lifetimeFeesResponse.statusText}`)
     }
 
-    const lifetimeFeesData = await lifetimeFeesResponse.json()
+    // Parse both JSON responses in parallel
+    const [lifetimeFeesData, claimStatsData] = await Promise.all([
+      lifetimeFeesResponse.json(),
+      claimStatsResponse.ok ? claimStatsResponse.json() : Promise.resolve(null)
+    ])
+
     const lifetimeFeesLamports = lifetimeFeesData.success 
       ? BigInt(lifetimeFeesData.response || '0')
       : BigInt(0)
 
-    // Get claim stats (total claimed per user)
-    const claimStatsResponse = await fetch(
-      `${BAGS_API_BASE}/token-launch/claim-stats?tokenMint=${VAMP_TOKEN_MINT}`,
-      {
-        headers: {
-          'x-api-key': BAGS_API_KEY,
-        },
-      }
-    )
-
     let totalClaimedLamports = BigInt(0)
     let claimStats: any[] = []
 
-    if (claimStatsResponse.ok) {
-      const claimStatsData = await claimStatsResponse.json()
-      if (claimStatsData.success && Array.isArray(claimStatsData.response)) {
-        claimStats = claimStatsData.response
-        // Sum up all claimed amounts
-        totalClaimedLamports = claimStats.reduce((sum, stat) => {
-          return sum + BigInt(stat.totalClaimed || '0')
-        }, BigInt(0))
-      }
+    if (claimStatsData && claimStatsData.success && Array.isArray(claimStatsData.response)) {
+      claimStats = claimStatsData.response
+      // Sum up all claimed amounts
+      totalClaimedLamports = claimStats.reduce((sum, stat) => {
+        return sum + BigInt(stat.totalClaimed || '0')
+      }, BigInt(0))
     }
 
     // Calculate unclaimed fees
