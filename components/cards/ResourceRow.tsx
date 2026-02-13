@@ -124,13 +124,13 @@ export function ResourceRow({ resource, rank, userId, isExpanded, onToggle }: Re
               {resource.category}
             </Badge>
             {resource.ai_tool_type && (
-              <Badge variant="default" size="sm" className="hidden sm:flex items-center gap-1 text-[10px] sm:text-xs">
+              <Badge variant="default" size="sm" className="flex items-center gap-1 text-[10px] sm:text-xs">
                 <Sparkles className="w-3 h-3" />
                 AI Tool
               </Badge>
             )}
             {tagsDisplay && (
-              <span className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Tag className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate">{tagsDisplay}</span>
               </span>

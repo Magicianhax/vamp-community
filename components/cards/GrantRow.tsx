@@ -57,7 +57,7 @@ export function GrantRow({ grant, rank }: GrantRowProps) {
           <h3 className="font-head font-semibold text-sm sm:text-base line-clamp-1 truncate">
             {grant.title}
           </h3>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 line-clamp-1 truncate hidden sm:block">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 line-clamp-1">
             {grant.short_description || grant.sponsor_name}
           </p>
         </div>
