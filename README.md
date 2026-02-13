@@ -6,6 +6,7 @@ Vamp is a community-driven platform built for **vibecoders** - developers who em
 
 - [What is Vibecoding?](#what-is-vibecoding)
 - [Features](#features)
+- [$VAMP Token](#vamp-token)
 - [Tech Stack](#tech-stack)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
@@ -58,6 +59,15 @@ Bounty programs for vibecoders to compete and win prizes.
 - **Winner Showcase**: Winning submissions displayed on grant pages
 - **Creator Profiles**: Grant sponsors get profile attribution with avatars
 - **Comments**: Discuss grants with the community
+
+### $VAMP Token
+
+The community token that powers the ecosystem.
+
+- **Fee Tracking**: Real-time tracking of token trading fees via Bags API
+- **Community Grants**: Fees collected are used to fund community grants
+- **Transparency**: Publicly verifiable fee collection and distribution
+- **Token Analytics**: Live price charts and token statistics
 
 ### Learn
 
@@ -118,6 +128,7 @@ Content moderation and site management.
 | **UI Components** | Custom RetroUI design system |
 | **Icons** | Lucide React |
 | **Markdown** | React Markdown with remark-gfm |
+| **Token Data** | Bags API (Fee Tracking) |
 | **Avatar Fallback** | Unavatar.io, DiceBear, UI Avatars |
 
 ---
@@ -131,6 +142,7 @@ Before you begin, ensure you have the following installed:
 - **Git**
 - A **Supabase** account (free tier works)
 - A **Twitter Developer** account (optional, for avatar fetching)
+- A **Bags API Key** (optional, for token fee tracking)
 
 ---
 
@@ -171,6 +183,9 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Twitter API (Optional - for avatar fetching)
 TWITTER_BEARER_TOKEN=your-twitter-bearer-token
+
+# Bags API (Optional - for token fee tracking)
+BAGS_API_KEY=your-bags-api-key
 ```
 
 #### Where to find these values:
@@ -181,6 +196,7 @@ TWITTER_BEARER_TOKEN=your-twitter-bearer-token
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard → Settings → API → anon public |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → Settings → API → service_role (keep secret!) |
 | `TWITTER_BEARER_TOKEN` | Twitter Developer Portal → Your App → Keys and Tokens |
+| `BAGS_API_KEY` | Bags.fm Developer Portal |
 
 ---
 
@@ -520,6 +536,8 @@ vamp/
 │   │   │   ├── page.tsx          # /projects - All projects
 │   │   │   └── [id]/page.tsx     # /projects/[id] - Project details
 │   │   ├── u/[username]/         # User profiles
+│   │   ├── vamp/                 # $VAMP token page
+│   │   │   └── page.tsx          # /vamp - Fee tracking and token info
 │   │   ├── vibecoders/           # Community directory
 │   │   └── page.tsx              # Homepage
 │   ├── admin/                    # Admin dashboard (protected)
@@ -529,6 +547,8 @@ vamp/
 │   │   ├── submissions/          # Submission review
 │   │   └── users/                # User management
 │   ├── api/                      # API routes
+│   │   ├── bags/                 # Bags API integration
+│   │   │   └── fees/             # Fee tracking endpoint
 │   │   ├── twitter-avatar/       # Avatar fetching API
 │   │   ├── refresh-avatar/       # Avatar refresh endpoint
 │   │   └── setup-storage/        # Storage initialization
@@ -565,6 +585,10 @@ vamp/
 │   │   ├── Card.tsx              # Card component
 │   │   ├── Input.tsx             # Input component
 │   │   └── Text.tsx              # Typography component
+│   ├── token/                    # Token-related components
+│   │   ├── FeeTracker.tsx        # Fee tracking dashboard
+│   │   ├── TokenChart.tsx        # Price chart
+│   │   └── TokenInfo.tsx         # Token utility info
 │   └── ui/                       # Shared UI components
 │       ├── Markdown.tsx          # Markdown renderer
 │       ├── SearchModal.tsx       # Global search modal
@@ -604,6 +628,15 @@ vamp/
 ---
 
 ## Key Components
+
+### FeeTracker
+
+Displays real-time fee statistics for the $VAMP token using the Bags API.
+
+- Fetches lifetime fees, total claimed, and unclaimed amounts
+- Displays claim stats by user/wallet
+- Auto-refreshes data every 30 seconds
+- Parallel data fetching for performance
 
 ### TwitterAvatar
 
@@ -648,6 +681,7 @@ Custom design system with a retro aesthetic:
 
 | Route | Method | Description |
 |-------|--------|-------------|
+| `/api/bags/fees` | GET | Fetch token fee stats from Bags API |
 | `/api/twitter-avatar/[handle]` | GET | Fetch avatar for Twitter handle |
 | `/api/refresh-avatar` | POST | Force refresh user's avatar |
 | `/api/setup-storage` | POST | Initialize storage bucket |
@@ -705,6 +739,7 @@ Make sure to set all environment variables in your deployment platform:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `TWITTER_BEARER_TOKEN` (optional)
+- `BAGS_API_KEY` (optional)
 
 ### Supabase Production Setup
 
@@ -740,6 +775,11 @@ We welcome contributions! Here's how to get started:
 
 ### Common Issues
 
+**Token Fees Not Loading:**
+- Check if `BAGS_API_KEY` is set correctly in `.env.local`
+- Verify the key is valid and has access to the Bags API
+- Check if the Bags API service is up
+
 **Avatar not loading:**
 - Check if `SUPABASE_SERVICE_ROLE_KEY` is set correctly
 - Verify storage bucket policies are configured
@@ -769,6 +809,7 @@ MIT License - feel free to use this project for your own purposes.
 - Powered by [Supabase](https://supabase.com/)
 - Styled with [Tailwind CSS](https://tailwindcss.com/)
 - Icons from [Lucide](https://lucide.dev/)
+- Token Data from [Bags.fm](https://bags.fm/)
 
 ---
 
