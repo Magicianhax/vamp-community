@@ -53,8 +53,6 @@ export function DownvoteButton({
         setIsLoading(false)
         return
       }
-      
-      console.log('DownvoteButton: Voting with user_id:', userId, 'downvoted:', downvoted)
 
       if (downvoted) {
         const { error } = await supabase

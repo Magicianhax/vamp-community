@@ -55,8 +55,6 @@ export function ResourceVoteButton({
         return
       }
 
-      console.log('ResourceVoteButton: Voting with user_id:', userId, 'voteType:', voteType, 'currentVote:', userVote)
-
       // If clicking the same vote, remove it
       if (userVote === voteType) {
         const { error } = await supabase
